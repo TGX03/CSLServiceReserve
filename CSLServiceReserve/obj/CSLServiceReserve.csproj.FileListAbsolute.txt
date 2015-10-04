@@ -1,0 +1,8 @@
+E:\Projects\CSLTesting\CSLTesting\CSLServiceReserve\bin\Release\CSLServiceReserve.dll
+E:\Projects\CSLTesting\CSLTesting\CSLServiceReserve\bin\Release\CSLServiceReserve.pdb
+E:\Projects\CSLTesting\CSLTesting\CSLServiceReserve\bin\Release\Assembly-CSharp.dll
+E:\Projects\CSLTesting\CSLTesting\CSLServiceReserve\bin\Release\ColossalManaged.dll
+E:\Projects\CSLTesting\CSLTesting\CSLServiceReserve\bin\Release\ICities.dll
+E:\Projects\CSLTesting\CSLTesting\CSLServiceReserve\bin\Release\UnityEngine.dll
+E:\Projects\CSLTesting\CSLTesting\CSLServiceReserve\obj\Release\CSLServiceReserve.dll
+E:\Projects\CSLTesting\CSLTesting\CSLServiceReserve\obj\Release\CSLServiceReserve.pdb
