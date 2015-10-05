@@ -49,7 +49,7 @@ namespace CSLServiceReserve
         {
             get
             {
-                return Mod.MOD_DESCRIPTION;
+                return MOD_DESCRIPTION.ToString();
             }
         }
 
@@ -58,7 +58,7 @@ namespace CSLServiceReserve
             get
             {
 
-                return Mod.MOD_OFFICIAL_NAME;
+                return MOD_DESCRIPTION.ToString();
 
             }
         }
@@ -146,7 +146,7 @@ namespace CSLServiceReserve
             if (IsInited == false)
             {
                 IsInited = true;
-                //PluginsChanged();
+                PluginsChanged();
                 Singleton<PluginManager>.instance.eventPluginsChanged += new PluginManager.PluginsChangedHandler(PluginsChanged);
                 Singleton<PluginManager>.instance.eventPluginsStateChanged += new PluginManager.PluginsChangedHandler(PluginsChanged);
                 if (DEBUG_LOG_ON & DEBUG_LOG_LEVEL >= 2) { Helper.dbgLog("Init completed." + DateTime.Now.ToLongTimeString()); }
@@ -452,7 +452,7 @@ namespace CSLServiceReserve
                     //we have this here incase maybe some other plugin wants to disable us upon thier own loading so we
                     //keep checking everytime there is a plugin change that we're still enabled. This whole idea may be overkill
                     Mod.IsEnabled = pluginInfo.isEnabled;
-
+                    if(Mod.DEBUG_LOG_ON & Mod.DEBUG_LOG_LEVEL > 2) Helper.dbgLog("PluginChangeNotify mod is still enabled.");
                    
                 } 
             }
