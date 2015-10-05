@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("CSLServiceReserve")]
-[assembly: AssemblyDescription("v1.2.1-f1 build_002")]
+[assembly: AssemblyDescription("v1.2.1-f1 build_003")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("CSLServiceReserve")]
-[assembly: AssemblyCopyright("Copyright ©  2015 v1.2.1-f1 build_002")]
+[assembly: AssemblyCopyright("Copyright ©  2015 v1.2.1-f1 build_003")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -34,4 +34,4 @@ using System.Runtime.InteropServices;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.2.0")]
 [assembly: AssemblyFileVersion("1.0.2.2")]
-[assembly: AssemblyInformationalVersion("v1.2.1-f1 build_002")]
+[assembly: AssemblyInformationalVersion("v1.2.1-f1 build_003")]

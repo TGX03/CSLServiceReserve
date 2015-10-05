@@ -16,8 +16,8 @@ namespace CSLServiceReserve
         public byte DebugLoggingLevel = 0;  //detail: 1 basically very similar to just on+0 ; 2 = Very detailed; 3+ extreme only meant for me during dev...if that. 
         public ushort VehicleReserveAmount = 16;
         public int VehicleReserveAmountIndex = 1; //used to set dropbox default index in options screen. Make sure it matches. with default text and classes default value if you change!
-        public bool EnableGui = false;
-        public bool UseAutoRefresh = false;
+        public bool EnableGui = true;
+        public bool UseAutoRefresh = true;
         public float AutoRefreshSeconds = 3.0f;
         public float GuiOpacity = 0.90f;
         public bool DumpStatsOnMapEnd = false;
@@ -52,12 +52,10 @@ namespace CSLServiceReserve
             catch (System.IO.IOException ex1)
             {
                 Helper.dbgLog("Filesystem or IO Error: \r\n", ex1, true);
-                Debug.LogException(ex1);
             }
             catch (Exception ex1)
             {
                 Helper.dbgLog(ex1.Message.ToString() + "\r\n", ex1, true);
-                Debug.LogException(ex1);
             }
         }
 
@@ -74,15 +72,19 @@ namespace CSLServiceReserve
                     return config;
                 }
             }
+            
+            catch(System.IO.FileNotFoundException ex4)
+            {
+                Helper.dbgLog("File not found. This is expected if no config file. \r\n",ex4,false);
+            }
+
             catch (System.IO.IOException ex1)
             {
                 Helper.dbgLog("Filesystem or IO Error: \r\n",ex1,true);
-                Debug.LogException(ex1);
             }
             catch (Exception ex1)
             {
                 Helper.dbgLog(ex1.Message.ToString() + "\r\n",ex1,true);
-                Debug.LogException(ex1);
             }
 
             return null;

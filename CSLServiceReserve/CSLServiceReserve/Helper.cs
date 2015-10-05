@@ -323,7 +323,6 @@ namespace CSLServiceReserve
             catch (Exception ex)
             {
                 dbgLog("Error:\r\n",ex,true);
-                Debug.LogException(ex); 
             }
 
             if (Mod.DEBUG_LOG_ON & Mod.DEBUG_LOG_LEVEL >= 2) dbgLog("Built the log string to dump.");
@@ -466,7 +465,6 @@ namespace CSLServiceReserve
             catch (Exception Exp)
             {
                 Debug.Log(string.Concat("[CSLServiceReserve.Helper.dbgLog()] Error in log attempt!  ", Exp.Message.ToString()));
-                Debug.LogException(Exp) ;
             }
         }
     }

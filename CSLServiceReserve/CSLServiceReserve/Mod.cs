@@ -21,7 +21,7 @@ namespace CSLServiceReserve
         internal const string MOD_OFFICIAL_NAME = "CSL Service Reserve";  //debug==must match folder name
         internal const string MOD_DESCRIPTION = "Allows you to reserve vehicles for critical services.";
         internal static readonly string MOD_DBG_Prefix = "CSLServiceReserve"; //same..for now.
-        internal const string VERSION_BUILD_NUMBER = "1.2.1-f1 build_002";
+        internal const string VERSION_BUILD_NUMBER = "1.2.1-f1 build_003";
         public static readonly string MOD_CONFIGPATH = "CSLServiceReserve_Config.xml";
         
         public static bool IsEnabled = false;           //tracks if the mod is enabled.
@@ -49,7 +49,7 @@ namespace CSLServiceReserve
         {
             get
             {
-                return MOD_DESCRIPTION.ToString();
+                return MOD_DESCRIPTION;
             }
         }
 
@@ -58,7 +58,7 @@ namespace CSLServiceReserve
             get
             {
 
-                return MOD_DESCRIPTION.ToString();
+                return MOD_OFFICIAL_NAME ;
 
             }
         }
@@ -95,12 +95,18 @@ namespace CSLServiceReserve
          /// </summary>
         public Mod()
 		{
-            Helper.dbgLog("\r\n" + Mod.MOD_OFFICIAL_NAME + " v" + Mod.VERSION_BUILD_NUMBER + " Mod has been loaded.");
-            if (!IsInited)
-            { 
-                ReloadConfigValues(false, false);
-                init();
+            try
+            {
+                Helper.dbgLog("\r\n" + Mod.MOD_OFFICIAL_NAME + " v" + Mod.VERSION_BUILD_NUMBER + " Mod has been loaded.");
+                if (!IsInited)
+                {
+                    ReloadConfigValues(false, false);
+                    init();
+                }
             }
+            catch(Exception ex)
+            { Helper.dbgLog("[" + MOD_DBG_Prefix + "}", ex, true); }
+
  
         }
         
@@ -111,33 +117,40 @@ namespace CSLServiceReserve
          /// <param name="bNoReloadVars">Set this to true to NOT reload the values from the new read of config file to our class level counterpart vars</param>
          public static void ReloadConfigValues(bool bForceReread, bool bNoReloadVars)
          {
-             if (bForceReread)
+             try
              {
-                 config = null;
-                 if (DEBUG_LOG_ON & DEBUG_LOG_LEVEL >= 1) { Helper.dbgLog("Config wipe requested."); }
-             }
-             config = Configuration.Deserialize(MOD_CONFIGPATH);
-             config.ConfigVersion = Configuration.CurrentVersion;
-             if (config == null)
-             {
-                 config = new Configuration();
-                 config.ConfigVersion = Configuration.CurrentVersion;
-                 //reset of setting should pull defaults
-                 Helper.dbgLog("Existing config was null. Created new one.");
-             }
 
-             if (config != null && bNoReloadVars==false) //set\refresh our vars by default.
-             {
-                 DEBUG_LOG_ON = config.DebugLogging;
-                 DEBUG_LOG_LEVEL = config.DebugLoggingLevel;
-                 RESERVEAMOUNT = config.VehicleReserveAmount;
-                 IsGuiEnabled = config.EnableGui;
-                 UseAutoRefreshOption = config.UseAutoRefresh;
-                 AutoRefreshSeconds = config.AutoRefreshSeconds;
-                 config.VehicleReserveAmountIndex = GetOptionIndexFromValue(config.VehicleReserveAmount); 
-                 if (DEBUG_LOG_ON & DEBUG_LOG_LEVEL >= 2) { Helper.dbgLog("Vars refreshed"); }
+                 if (bForceReread)
+                 {
+                     config = null;
+                     if (DEBUG_LOG_ON & DEBUG_LOG_LEVEL >= 1) { Helper.dbgLog("Config wipe requested."); }
+                 }
+                 config = Configuration.Deserialize(MOD_CONFIGPATH);
+                 if (config == null)
+                 {
+                     config = new Configuration();
+                     config.ConfigVersion = Configuration.CurrentVersion;
+                     //reset of setting should pull defaults
+                     Helper.dbgLog("Existing config was null. Created new one.");
+                     Configuration.Serialize(MOD_CONFIGPATH, config); //let's write it.
+                 }
+                 if (config != null && bNoReloadVars == false) //set\refresh our vars by default.
+                 {
+                     config.ConfigVersion = Configuration.CurrentVersion;
+                     DEBUG_LOG_ON = config.DebugLogging;
+                     DEBUG_LOG_LEVEL = config.DebugLoggingLevel;
+                     RESERVEAMOUNT = config.VehicleReserveAmount;
+                     IsGuiEnabled = config.EnableGui;
+                     UseAutoRefreshOption = config.UseAutoRefresh;
+                     AutoRefreshSeconds = config.AutoRefreshSeconds;
+                     config.VehicleReserveAmountIndex = GetOptionIndexFromValue(config.VehicleReserveAmount);
+                     if (DEBUG_LOG_ON & DEBUG_LOG_LEVEL >= 2) { Helper.dbgLog("Vars refreshed"); }
+                 }
+                 if (DEBUG_LOG_ON & DEBUG_LOG_LEVEL >= 2) { Helper.dbgLog(string.Format("Reloaded Config data ({0}:{1} :{2})", bForceReread.ToString(), bNoReloadVars.ToString(), config.ConfigVersion.ToString())); }
              }
-             if (DEBUG_LOG_ON & DEBUG_LOG_LEVEL >= 2) { Helper.dbgLog(string.Format("Reloaded Config data ({0}:{1} :{2})", bForceReread.ToString(), bNoReloadVars.ToString(), config.ConfigVersion.ToString())); }
+             catch (Exception ex)
+             { Helper.dbgLog("Exception while loading config values.", ex, true); }
+
          }
 
         internal static void init()
@@ -146,6 +159,9 @@ namespace CSLServiceReserve
             if (IsInited == false)
             {
                 IsInited = true;
+               // if (Mod.config == null)
+                //{ ReloadConfigValues(false, false);}
+
                 PluginsChanged();
                 Singleton<PluginManager>.instance.eventPluginsChanged += new PluginManager.PluginsChangedHandler(PluginsChanged);
                 Singleton<PluginManager>.instance.eventPluginsStateChanged += new PluginManager.PluginsChangedHandler(PluginsChanged);
@@ -452,13 +468,12 @@ namespace CSLServiceReserve
                     //we have this here incase maybe some other plugin wants to disable us upon thier own loading so we
                     //keep checking everytime there is a plugin change that we're still enabled. This whole idea may be overkill
                     Mod.IsEnabled = pluginInfo.isEnabled;
-                    if(Mod.DEBUG_LOG_ON & Mod.DEBUG_LOG_LEVEL > 2) Helper.dbgLog("PluginChangeNotify mod is still enabled.");
+                    if(Mod.DEBUG_LOG_ON & Mod.DEBUG_LOG_LEVEL > 2) Helper.dbgLog("PluginChangeNotify, mod is still enabled.");
                    
                 } 
             }
             catch (Exception exception1)
             {
-                Debug.LogException(exception1);
                 Helper.dbgLog("PluginsChanged() triggered exception: ", exception1, true);
             }
         }
