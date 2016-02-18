@@ -1,0 +1,13 @@
+1.3.0.f2 _build01
+---
+Updated for snowfall services, adding snow, snowmove,roadmaintance and trams.
+
+
+Build_003b - I rushed out the first fix, which is fine, this one is more robust and leaves a cleaner log for
+fully expected missing config files on first run.
+  
+Build_003a - 
++Fixes issues where not having a config file would exception error (in a bad way).
+
+Build_002 - Initial release
+

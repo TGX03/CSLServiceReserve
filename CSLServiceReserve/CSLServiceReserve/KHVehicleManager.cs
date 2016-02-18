@@ -26,7 +26,10 @@ namespace CSLServiceReserve
                 && type != TransferManager.TransferReason.Crime && type != TransferManager.TransferReason.Bus 
                 && type != TransferManager.TransferReason.MetroTrain && type != TransferManager.TransferReason.PassengerTrain
                 && type != TransferManager.TransferReason.DeadMove && type != TransferManager.TransferReason.CriminalMove
-                && type != TransferManager.TransferReason.Taxi && type != TransferManager.TransferReason.GarbageMove)
+                && type != TransferManager.TransferReason.Taxi && type != TransferManager.TransferReason.GarbageMove
+                && type != TransferManager.TransferReason.Tram && type != TransferManager.TransferReason.RoadMaintenance
+                && type != TransferManager.TransferReason.Snow && type != TransferManager.TransferReason.SnowMove)
+
             {
                 Mod.timesFailedByReserve++; //stat tracking
                 Mod.timesFailedToCreate++;  //stat tracking

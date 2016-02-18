@@ -1,5 +1,5 @@
 CSL Service Reserve 
-v1.0.0_Build03
+v1.3.0_f4_Build01
 
 Purpose
 ----------
@@ -21,6 +21,10 @@ TransferReason.Taxi
 TransferReason.DeadMove
 TransferReason.GarbageMove
 TransferReason.CriminalMove
+TransferReason.Snow
+TransferReason.SnowMove
+TransferReason.RoadMaintenance
+
  
 
 Acknowledgements
