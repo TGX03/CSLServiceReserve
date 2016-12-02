@@ -1,5 +1,5 @@
 CSL Service Reserve 
-v1.3.0_f4_Build01
+v1.6.0_f4_Build01
 
 Purpose
 ----------
@@ -10,20 +10,29 @@ might me helpful to share.
 
 Transfer reasons to VehicleManger.CreateVehicle() that are allowed to use the reversed amount:
 TransferReason.Fire
+TransferReason.Fire2
 TransferReason.Sick
+TransferReason.Sick2
+TransferReason.SickMove
 TransferReason.Garbage
 TransferReason.Dead
 TransferReason.Crime
+TransferReason.DeadMove
+TransferReason.GarbageMove
+TransferReason.CriminalMove
 TransferReason.Bus
 TransferReason.MetroTrain
 TransferReason.PassengerTrain
 TransferReason.Taxi
-TransferReason.DeadMove
-TransferReason.GarbageMove
-TransferReason.CriminalMove
+TransferReason.Tram
 TransferReason.Snow
 TransferReason.SnowMove
 TransferReason.RoadMaintenance
+TransferReason.Flooding
+TransferReason.EvacuateVIPA
+TransferReason.EvacuateVIPB
+TransferReason.EvacuateVIPC
+TransferReason.EvacuateVIPD
 
  
 
