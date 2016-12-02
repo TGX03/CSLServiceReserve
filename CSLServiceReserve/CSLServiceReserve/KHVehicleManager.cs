@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using ColossalFramework;
 using ColossalFramework.Math;
-using ColossalFramework.Steamworks;
+//using ColossalFramework.Steamworks;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -28,7 +28,12 @@ namespace CSLServiceReserve
                 && type != TransferManager.TransferReason.DeadMove && type != TransferManager.TransferReason.CriminalMove
                 && type != TransferManager.TransferReason.Taxi && type != TransferManager.TransferReason.GarbageMove
                 && type != TransferManager.TransferReason.Tram && type != TransferManager.TransferReason.RoadMaintenance
-                && type != TransferManager.TransferReason.Snow && type != TransferManager.TransferReason.SnowMove)
+                && type != TransferManager.TransferReason.Snow && type != TransferManager.TransferReason.SnowMove
+                && type != TransferManager.TransferReason.Fire2 && type != TransferManager.TransferReason.ForestFire
+                && type != TransferManager.TransferReason.FloodWater && type !=TransferManager.TransferReason.SickMove
+                && type != TransferManager.TransferReason.Sick2 && type !=TransferManager.TransferReason.EvacuateVipA
+                && type != TransferManager.TransferReason.EvacuateVipB && type != TransferManager.TransferReason.EvacuateVipC
+                && type != TransferManager.TransferReason.EvacuateVipD)
 
             {
                 Mod.timesFailedByReserve++; //stat tracking
@@ -109,6 +114,7 @@ namespace CSLServiceReserve
             vMgr.m_vehicles.m_buffer[vehicle].m_pathPositionIndex = 0;
             vMgr.m_vehicles.m_buffer[vehicle].m_lastPathOffset = 0;
             vMgr.m_vehicles.m_buffer[vehicle].m_gateIndex = 0;
+            vMgr.m_vehicles.m_buffer[vehicle].m_waterSource = 0;
             info.m_vehicleAI.CreateVehicle(vehicle, ref vMgr.m_vehicles.m_buffer[vehicle]);
             info.m_vehicleAI.FrameDataUpdated(vehicle, ref vMgr.m_vehicles.m_buffer[vehicle], ref vMgr.m_vehicles.m_buffer[vehicle].m_frame0);
             vMgr.m_vehicleCount = (int)(vMgr.m_vehicles.ItemCount() - 1);
