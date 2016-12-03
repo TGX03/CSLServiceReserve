@@ -21,7 +21,7 @@ namespace CSLServiceReserve
         internal const string MOD_OFFICIAL_NAME = "CSL Service Reserve";  //debug==must match folder name
         internal const string MOD_DESCRIPTION = "Allows you to reserve vehicles for critical services.";
         internal static readonly string MOD_DBG_Prefix = "CSLServiceReserve"; //same..for now.
-        internal const string VERSION_BUILD_NUMBER = "1.6.1-f3 build_001";
+        internal const string VERSION_BUILD_NUMBER = "1.6.0-f4 build_002";
         public static readonly string MOD_CONFIGPATH = "CSLServiceReserve_Config.xml";
         
         public static bool IsEnabled = false;           //tracks if the mod is enabled.
@@ -162,9 +162,10 @@ namespace CSLServiceReserve
                // if (Mod.config == null)
                 //{ ReloadConfigValues(false, false);}
 
-                PluginsChanged();
-                Singleton<PluginManager>.instance.eventPluginsChanged += new PluginManager.PluginsChangedHandler(PluginsChanged);
-                Singleton<PluginManager>.instance.eventPluginsStateChanged += new PluginManager.PluginsChangedHandler(PluginsChanged);
+                //KH 12.2.2016 do we really this crap anymore?
+                //PluginsChanged();
+                //Singleton<PluginManager>.instance.eventPluginsChanged += new PluginManager.PluginsChangedHandler(PluginsChanged);
+                //Singleton<PluginManager>.instance.eventPluginsStateChanged += new PluginManager.PluginsChangedHandler(PluginsChanged);
                 if (DEBUG_LOG_ON & DEBUG_LOG_LEVEL >= 2) { Helper.dbgLog("Init completed." + DateTime.Now.ToLongTimeString()); }
             }
         }
@@ -173,8 +174,9 @@ namespace CSLServiceReserve
          {
              if (IsInited)
              {
-                 Singleton<PluginManager>.instance.eventPluginsChanged -= new PluginManager.PluginsChangedHandler(PluginsChanged);
-                 Singleton<PluginManager>.instance.eventPluginsStateChanged -= new PluginManager.PluginsChangedHandler(PluginsChanged);
+                 //KH 12.2.2016 do we really this crap anymore?
+                 //Singleton<PluginManager>.instance.eventPluginsChanged -= new PluginManager.PluginsChangedHandler(PluginsChanged);
+                 //Singleton<PluginManager>.instance.eventPluginsStateChanged -= new PluginManager.PluginsChangedHandler(PluginsChanged);
                  IsInited = false;
                  if (DEBUG_LOG_ON & DEBUG_LOG_LEVEL >= 2) { Helper.dbgLog("Un-Init triggered."); }
              }
@@ -433,6 +435,8 @@ namespace CSLServiceReserve
 
         }
 
+
+         //effecive 1.6.0f4 build002 this is now dead code and never called.
         public static void PluginsChanged()
         {
             try

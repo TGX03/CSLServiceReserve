@@ -1,3 +1,13 @@
+1.6.0.f4 _build002
+----
+Updated to make offline\local use of steam supplied dll easier.
+- removed pluginchange() calls
+
+1.6.0.f4 _build001
+----
+updated for Disasters dlc and related patch
+Adding additional fire,medical, and vip evacuation services to list.
+
 1.3.0.f4 _build01
 ---
 Updated for snowfall services, adding snow, snowmove,roadmaintance and trams.
