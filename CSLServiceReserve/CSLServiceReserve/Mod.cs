@@ -21,7 +21,7 @@ namespace CSLServiceReserve
         internal const string MOD_OFFICIAL_NAME = "CSL Service Reserve";  //debug==must match folder name
         internal const string MOD_DESCRIPTION = "Allows you to reserve vehicles for critical services.";
         internal static readonly string MOD_DBG_Prefix = "CSLServiceReserve"; //same..for now.
-        internal const string VERSION_BUILD_NUMBER = "1.6.0-f4 build_002";
+        internal const string VERSION_BUILD_NUMBER = "1.7.0-f5 build_002";
         public static readonly string MOD_CONFIGPATH = "CSLServiceReserve_Config.xml";
         
         public static bool IsEnabled = false;           //tracks if the mod is enabled.

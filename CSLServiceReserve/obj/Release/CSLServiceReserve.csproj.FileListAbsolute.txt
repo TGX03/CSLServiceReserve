@@ -7,6 +7,5 @@ E:\Projects\CSLTesting\CSLTesting\CSLServiceReserve\bin\Release\UnityEngine.dll
 E:\Projects\CSLTesting\CSLTesting\CSLServiceReserve\obj\Release\CSLServiceReserve.dll
 E:\Projects\CSLTesting\CSLTesting\CSLServiceReserve\obj\Release\CSLServiceReserve.pdb
 E:\Projects\CSLTesting\CSLTesting\CSLServiceReserve\bin\Release\Assembly-CSharp-firstpass.dll
-E:\Projects\CSLTesting\CSLTesting\CSLServiceReserve\bin\Release\ICSharpCode.SharpZipLib.dll
-E:\Projects\CSLTesting\CSLTesting\CSLServiceReserve\bin\Release\UnityEngine.xml
+E:\Projects\CSLTesting\CSLTesting\CSLServiceReserve\bin\Release\PopsApiWrapper.dll
 E:\Projects\CSLTesting\CSLTesting\CSLServiceReserve\obj\Release\CSLServiceReserve.csprojResolveAssemblyReference.cache

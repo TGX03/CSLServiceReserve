@@ -33,7 +33,8 @@ namespace CSLServiceReserve
                 && type != TransferManager.TransferReason.FloodWater && type !=TransferManager.TransferReason.SickMove
                 && type != TransferManager.TransferReason.Sick2 && type !=TransferManager.TransferReason.EvacuateVipA
                 && type != TransferManager.TransferReason.EvacuateVipB && type != TransferManager.TransferReason.EvacuateVipC
-                && type != TransferManager.TransferReason.EvacuateVipD)
+                && type != TransferManager.TransferReason.EvacuateVipD && type != TransferManager.TransferReason.Monorail
+                && type != TransferManager.TransferReason.Ferry)
 
             {
                 Mod.timesFailedByReserve++; //stat tracking

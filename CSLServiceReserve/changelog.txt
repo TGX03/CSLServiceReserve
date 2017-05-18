@@ -1,4 +1,9 @@
-1.6.0.f4 _build002
+1.7.0.f5 _build002
+----
+updated for v1.7 of game. Added Ferries and Monorail to services list.
+Left out cablecars and blimps on purpose, /low occupancy.
+
+1.6.3.f4 _build002
 ----
 Updated to make offline\local use of steam supplied dll easier.
 - removed pluginchange() calls
