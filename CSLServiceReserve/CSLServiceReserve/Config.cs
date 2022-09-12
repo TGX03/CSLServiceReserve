@@ -29,8 +29,7 @@ namespace CSLServiceReserve
 
         public static bool isCurrentVersion(uint iVersion)
         {
-            if (iVersion != CURRENT_VERSION) return false;
-            return true;
+            return iVersion == CURRENT_VERSION;
         }
 
         public static void serialize(string filename, Configuration config)
@@ -79,7 +78,7 @@ namespace CSLServiceReserve
         ///     Constrain certain values read in from the config file that will either cause issue or just make no sense.
         /// </summary>
         /// <param name="tmpConfig"> An instance of an initialized Configuration object (byref)</param>
-        public static void validateConfig(ref Configuration tmpConfig)
+        private static void validateConfig(ref Configuration tmpConfig)
         {
             if (tmpConfig.guiOpacity > 1.0f | tmpConfig.guiOpacity < 0.1f) tmpConfig.guiOpacity = 1.0f;
             if (tmpConfig.autoRefreshSeconds > 60.0f | tmpConfig.autoRefreshSeconds < 1.0f) tmpConfig.autoRefreshSeconds = 3.0f;
