@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using ColossalFramework.Math;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -10,26 +11,27 @@ namespace CSLServiceReserve
     internal static class KhVehicleManager
     {
 
+        private static readonly HashSet<TransferManager.TransferReason> VALID_REASONS = new HashSet<TransferManager.TransferReason>();
+
+        static KhVehicleManager()
+        {
+            TransferManager.TransferReason[] reasons = { TransferManager.TransferReason.Fire, TransferManager.TransferReason.Fire2, TransferManager.TransferReason.ForestFire, TransferManager.TransferReason.Sick, TransferManager.TransferReason.Sick2, TransferManager.TransferReason.SickMove,
+                                                         TransferManager.TransferReason.Garbage, TransferManager.TransferReason.GarbageMove, TransferManager.TransferReason.GarbageTransfer, TransferManager.TransferReason.Dead, TransferManager.TransferReason.DeadMove, TransferManager.TransferReason.Crime,
+                                                         TransferManager.TransferReason.CriminalMove, TransferManager.TransferReason.Bus, TransferManager.TransferReason.MetroTrain, TransferManager.TransferReason.PassengerTrain, TransferManager.TransferReason.PassengerHelicopter, TransferManager.TransferReason.PassengerPlane,
+                                                         TransferManager.TransferReason.PassengerShip, TransferManager.TransferReason.Tram, TransferManager.TransferReason.RoadMaintenance, TransferManager.TransferReason.Snow, TransferManager.TransferReason.SnowMove, TransferManager.TransferReason.FloodWater,
+                                                         TransferManager.TransferReason.EvacuateA, TransferManager.TransferReason.EvacuateB, TransferManager.TransferReason.EvacuateC, TransferManager.TransferReason.EvacuateD, TransferManager.TransferReason.EvacuateVipA, TransferManager.TransferReason.EvacuateVipB,
+                                                         TransferManager.TransferReason.EvacuateVipC, TransferManager.TransferReason.EvacuateVipD, TransferManager.TransferReason.Monorail, TransferManager.TransferReason.Ferry, TransferManager.TransferReason.Blimp, TransferManager.TransferReason.Mail, TransferManager.TransferReason.Trolleybus,
+                                                         TransferManager.TransferReason.CableCar, TransferManager.TransferReason.IncomingMail, TransferManager.TransferReason.IntercityBus, TransferManager.TransferReason.OutgoingMail, TransferManager.TransferReason.SortedMail, TransferManager.TransferReason.UnsortedMail };
+            VALID_REASONS.UnionWith(reasons.ToList());
+        }
+        
         private static bool createVehicle(VehicleManager vMgr, out ushort vehicle, ref Randomizer r, VehicleInfo info, Vector3 position, TransferManager.TransferReason type, bool transferToSource, bool transferToTarget)
         {
             bool attemptFlag = false;
             uint reserveMax = vMgr.m_vehicles.m_size - 1 - Mod.reserveamount; //we subtract 1 cause game doesn't use entry 0 for a real vehicle.
             int currentVehicleNum = vMgr.m_vehicleCount;                      //vMgr.m_vehicles.ItemCount(); //found they were never different ~+\- a nanosecond.
             Mod.timesCvCalledTotal++;                                         //stat tracking.
-            if (currentVehicleNum >= reserveMax && type != TransferManager.TransferReason.Fire && type != TransferManager.TransferReason.Sick
-                && type != TransferManager.TransferReason.Garbage && type != TransferManager.TransferReason.Dead
-                && type != TransferManager.TransferReason.Crime && type != TransferManager.TransferReason.Bus
-                && type != TransferManager.TransferReason.MetroTrain && type != TransferManager.TransferReason.PassengerTrain
-                && type != TransferManager.TransferReason.DeadMove && type != TransferManager.TransferReason.CriminalMove
-                && type != TransferManager.TransferReason.Taxi && type != TransferManager.TransferReason.GarbageMove
-                && type != TransferManager.TransferReason.Tram && type != TransferManager.TransferReason.RoadMaintenance
-                && type != TransferManager.TransferReason.Snow && type != TransferManager.TransferReason.SnowMove
-                && type != TransferManager.TransferReason.Fire2 && type != TransferManager.TransferReason.ForestFire
-                && type != TransferManager.TransferReason.FloodWater && type != TransferManager.TransferReason.SickMove
-                && type != TransferManager.TransferReason.Sick2 && type != TransferManager.TransferReason.EvacuateVipA
-                && type != TransferManager.TransferReason.EvacuateVipB && type != TransferManager.TransferReason.EvacuateVipC
-                && type != TransferManager.TransferReason.EvacuateVipD && type != TransferManager.TransferReason.Monorail
-                && type != TransferManager.TransferReason.Ferry){
+            if (currentVehicleNum >= reserveMax && !VALID_REASONS.Contains(type)){
                 Mod.timesFailedByReserve++; //stat tracking
                 Mod.timesFailedToCreate++;  //stat tracking
                 vehicle = 0;
