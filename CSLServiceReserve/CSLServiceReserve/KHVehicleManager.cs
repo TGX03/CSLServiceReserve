@@ -1,74 +1,66 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ColossalFramework;
 using ColossalFramework.Math;
-//using ColossalFramework.Steamworks;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Threading;
+using JetBrains.Annotations;
 using UnityEngine;
+//using ColossalFramework.Steamworks;
 
 namespace CSLServiceReserve
 {
-    internal static class KHVehicleManager
+    internal static class KhVehicleManager
     {
-        private static bool CreateVehicle(VehicleManager vMgr, out ushort vehicle, ref Randomizer r, VehicleInfo info, Vector3 position, TransferManager.TransferReason type, bool transferToSource, bool transferToTarget)
+
+        private static bool createVehicle(VehicleManager vMgr, out ushort vehicle, ref Randomizer r, VehicleInfo info, Vector3 position, TransferManager.TransferReason type, bool transferToSource, bool transferToTarget)
         {
-            bool AttemptFlag = false;
-            uint ReserveMax = (vMgr.m_vehicles.m_size - 1) - Mod.RESERVEAMOUNT;  //we subtract 1 cause game doesn't use entry 0 for a real vehicle.
-            int CurrentVehicleNum = vMgr.m_vehicleCount; //vMgr.m_vehicles.ItemCount(); //found they were never different ~+\- a nanosecond.
-            int m_VecCount = vMgr.m_vehicleCount;  //unly
-            Mod.timesCV_CalledTotal++; //stat tracking.
-            if (CurrentVehicleNum >= ReserveMax && type != TransferManager.TransferReason.Fire && type != TransferManager.TransferReason.Sick
-                && type != TransferManager.TransferReason.Garbage && type != TransferManager.TransferReason.Dead 
-                && type != TransferManager.TransferReason.Crime && type != TransferManager.TransferReason.Bus 
+            bool attemptFlag = false;
+            uint reserveMax = vMgr.m_vehicles.m_size - 1 - Mod.reserveamount; //we subtract 1 cause game doesn't use entry 0 for a real vehicle.
+            int currentVehicleNum = vMgr.m_vehicleCount;                      //vMgr.m_vehicles.ItemCount(); //found they were never different ~+\- a nanosecond.
+            Mod.timesCvCalledTotal++;                                         //stat tracking.
+            if (currentVehicleNum >= reserveMax && type != TransferManager.TransferReason.Fire && type != TransferManager.TransferReason.Sick
+                && type != TransferManager.TransferReason.Garbage && type != TransferManager.TransferReason.Dead
+                && type != TransferManager.TransferReason.Crime && type != TransferManager.TransferReason.Bus
                 && type != TransferManager.TransferReason.MetroTrain && type != TransferManager.TransferReason.PassengerTrain
                 && type != TransferManager.TransferReason.DeadMove && type != TransferManager.TransferReason.CriminalMove
                 && type != TransferManager.TransferReason.Taxi && type != TransferManager.TransferReason.GarbageMove
                 && type != TransferManager.TransferReason.Tram && type != TransferManager.TransferReason.RoadMaintenance
                 && type != TransferManager.TransferReason.Snow && type != TransferManager.TransferReason.SnowMove
                 && type != TransferManager.TransferReason.Fire2 && type != TransferManager.TransferReason.ForestFire
-                && type != TransferManager.TransferReason.FloodWater && type !=TransferManager.TransferReason.SickMove
-                && type != TransferManager.TransferReason.Sick2 && type !=TransferManager.TransferReason.EvacuateVipA
+                && type != TransferManager.TransferReason.FloodWater && type != TransferManager.TransferReason.SickMove
+                && type != TransferManager.TransferReason.Sick2 && type != TransferManager.TransferReason.EvacuateVipA
                 && type != TransferManager.TransferReason.EvacuateVipB && type != TransferManager.TransferReason.EvacuateVipC
                 && type != TransferManager.TransferReason.EvacuateVipD && type != TransferManager.TransferReason.Monorail
-                && type != TransferManager.TransferReason.Ferry)
-
-            {
+                && type != TransferManager.TransferReason.Ferry){
                 Mod.timesFailedByReserve++; //stat tracking
                 Mod.timesFailedToCreate++;  //stat tracking
                 vehicle = 0;
                 return false;
             }
 
-            if (CurrentVehicleNum >= ReserveMax)
-            {
-                AttemptFlag = true;
-                Mod.timesReservedAttempted++;  //stat tracking.
-                if (CurrentVehicleNum == (vMgr.m_vehicles.m_size -1)) { Mod.timesLimitReached++; } //stattracking
-                if (Mod.DEBUG_LOG_ON && Mod.DEBUG_LOG_LEVEL >= 3) { Helper.dbgLog(" Vehicles[" + CurrentVehicleNum.ToString() + 
-                    "] max reached, attempting to use reserve for a " + type.ToString() + " - " + System.DateTime.Now.ToString() +
-                    " : " + DateTime.Now.Millisecond.ToString() + " counter=" + Mod.timesReservedAttempted.ToString() + " reservemax=" +
-                    ReserveMax.ToString()); }
+            if (currentVehicleNum >= reserveMax){
+                attemptFlag = true;
+                Mod.timesReservedAttempted++;                                                 //stat tracking.
+                if (currentVehicleNum == vMgr.m_vehicles.m_size - 1) Mod.timesLimitReached++; //stattracking
+                if (Mod.debugLOGOn && Mod.debugLOGLevel >= 3)
+                    Helper.dbgLog(" Vehicles[" + currentVehicleNum +
+                        "] max reached, attempting to use reserve for a " + type + " - " + DateTime.Now +
+                        " : " + DateTime.Now.Millisecond + " counter=" + Mod.timesReservedAttempted + " reservemax=" +
+                        reserveMax);
             }
-    
+
 
             //Original Untouched Below except for attemptflag and Mod.timeFailedToCreate Counters and debug logging.
             ushort num;
-            if (!vMgr.m_vehicles.CreateItem(out num, ref r))
-            {
+            if (!vMgr.m_vehicles.CreateItem(out num, ref r)){
                 vehicle = 0;
-                if (AttemptFlag) 
-                {
-                    Mod.timesReserveAttemptFailed++ ; //stat tracking.
-                    if (Mod.DEBUG_LOG_ON && Mod.DEBUG_LOG_LEVEL >= 2) {  Helper.dbgLog(" Vehicles[" + CurrentVehicleNum.ToString() + 
-                        "] max reached, attempted to use reserve for a " + type.ToString() + " but Failed! " + System.DateTime.Now.ToString() + " : " +
-                        DateTime.Now.Millisecond.ToString() + " counter=" + Mod.timesReservedAttempted.ToString()); }
+                if (attemptFlag){
+                    Mod.timesReserveAttemptFailed++; //stat tracking.
+                    if (Mod.debugLOGOn && Mod.debugLOGLevel >= 2)
+                        Helper.dbgLog(" Vehicles[" + currentVehicleNum +
+                            "] max reached, attempted to use reserve for a " + type + " but Failed! " + DateTime.Now + " : " +
+                            DateTime.Now.Millisecond + " counter=" + Mod.timesReservedAttempted);
                 }
 
-                Mod.timesFailedToCreate++;  //stat tracking
+                Mod.timesFailedToCreate++; //stat tracking
                 return false;
             }
 
@@ -76,14 +68,8 @@ namespace CSLServiceReserve
             vehicle = num;
             Vehicle.Frame frame = new Vehicle.Frame(position, Quaternion.identity);
             vMgr.m_vehicles.m_buffer[vehicle].m_flags = Vehicle.Flags.Created;
-            if (transferToSource)
-            {
-                vMgr.m_vehicles.m_buffer[vehicle].m_flags = vMgr.m_vehicles.m_buffer[vehicle].m_flags | Vehicle.Flags.TransferToSource;
-            }
-            if (transferToTarget)
-            {
-                vMgr.m_vehicles.m_buffer[vehicle].m_flags = vMgr.m_vehicles.m_buffer[vehicle].m_flags | Vehicle.Flags.TransferToTarget;
-            }
+            if (transferToSource) vMgr.m_vehicles.m_buffer[vehicle].m_flags = vMgr.m_vehicles.m_buffer[vehicle].m_flags | Vehicle.Flags.TransferToSource;
+            if (transferToTarget) vMgr.m_vehicles.m_buffer[vehicle].m_flags = vMgr.m_vehicles.m_buffer[vehicle].m_flags | Vehicle.Flags.TransferToTarget;
             vMgr.m_vehicles.m_buffer[vehicle].Info = info;
             vMgr.m_vehicles.m_buffer[vehicle].m_frame0 = frame;
             vMgr.m_vehicles.m_buffer[vehicle].m_frame1 = frame;
@@ -121,6 +107,5 @@ namespace CSLServiceReserve
             vMgr.m_vehicleCount = (int)(vMgr.m_vehicles.ItemCount() - 1);
             return true;
         }
-
     }
 }

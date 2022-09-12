@@ -1,175 +1,150 @@
-﻿using ICities;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
+using System.Text;
+using ColossalFramework;
 using ColossalFramework.IO;
 using ColossalFramework.Plugins;
-using ColossalFramework.Packaging;
-using ColossalFramework.PlatformServices;
-using ColossalFramework;
+using ICities;
 using UnityEngine;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-
+using Debug = UnityEngine.Debug;
 namespace CSLServiceReserve
 {
     public class Helper
     {
-        public class ExternalData
-        {
-            public bool CoVechRefreshEnabled = false;
-            public bool CoDataRefreshEnabled=false;
-            public bool CoDisplayRefreshEnabled=false;
-            public DateTime statsResetTime;
-            public string cachedname ="n/a";
-            public string name= "n/a";
-            public string tag = "n/a";
-            public bool isVisable;
-            public bool isAutoRefreshActive;
-
-            public object[] ToStringArray() 
-            {
-                object[] tmpStrArr = new object[] { name.ToString(), cachedname.ToString(),
-                 tag.ToString(), isAutoRefreshActive.ToString(), isVisable.ToString(), CoVechRefreshEnabled.ToString(),
-                CoDataRefreshEnabled.ToString(),CoDisplayRefreshEnabled.ToString(),
-                statsResetTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt")};
-                return tmpStrArr;
-            }
-        }
-
         [Flags]
         public enum DumpOption : byte
         {
-            None = 0,
-            Default = 1,
-            MapLoaded = 2,
-            OptionsOnly = 4,
-            DebugInfo = 8,
-            UseSeperateFile = 16,
-            VehicleData = 32,
-            GUIActive = 64,
-            ExtendedInfo = 128,
-            All = 255
+            NONE = 0,
+            DEFAULT = 1,
+            MAP_LOADED = 2,
+            OPTIONS_ONLY = 4,
+            DEBUG_INFO = 8,
+            USE_SEPERATE_FILE = 16,
+            VEHICLE_DATA = 32,
+            GUI_ACTIVE = 64,
+            EXTENDED_INFO = 128,
+            ALL = 255
         }
-        private const string DumpStatsHeader = "\r\n---------- CSLServiceReserve StatsDump ----------\r\n";
-        private const string DumpVersion = "ModVersion: {0}   Current DateTime: {1}\r\n";
-        private const string DumpV0 = "\r\n----- Vehicle Data -----\r\n";
-        private const string DumpV1 = "Number of Vehicles in use: {0} \r\n";
-        private const string DumpV2 = "Selected # of reserved vehicles: {1} \r\n";
-        private const string DumpV3 = "Number of Vehicles Max: {2}   New Reserved Limit: {3} \r\n";
-        private const string DumpV4 = "# Attempts to use reserved vehicles: {4} \r\n";
-        private const string DumpV5 = "# Attempts to use reserved vehicles (but failed): {5} \r\n";
-        private const string DumpV6 = "# Times the reserved limits were exceeded: {6} \r\n";
-        private const string Dumpv7 = "# Times game failed to create a non-reserved vehicle:  {7} \r\n";
-        private const string Dumpv8 = "# Times game failed to create any vehicle:  {8} \r\n";
-        private const string Dumpv9 = "# Times in total game tried to create a vehicle:  {9} \r\n";
+        private const string DUMP_STATS_HEADER = "\r\n---------- CSLServiceReserve StatsDump ----------\r\n";
+        private const string DUMP_VERSION = "ModVersion: {0}   Current DateTime: {1}\r\n";
+        private const string DUMP_V0 = "\r\n----- Vehicle Data -----\r\n";
+        private const string DUMP_V1 = "Number of Vehicles in use: {0} \r\n";
+        private const string DUMP_V2 = "Selected # of reserved vehicles: {1} \r\n";
+        private const string DUMP_V3 = "Number of Vehicles Max: {2}   New Reserved Limit: {3} \r\n";
+        private const string DUMP_V4 = "# Attempts to use reserved vehicles: {4} \r\n";
+        private const string DUMP_V5 = "# Attempts to use reserved vehicles (but failed): {5} \r\n";
+        private const string DUMP_V6 = "# Times the reserved limits were exceeded: {6} \r\n";
+        private const string DUMPV7 = "# Times game failed to create a non-reserved vehicle:  {7} \r\n";
+        private const string DUMPV8 = "# Times game failed to create any vehicle:  {8} \r\n";
+        private const string DUMPV9 = "# Times in total game tried to create a vehicle:  {9} \r\n";
 
-        private const string dbgDumpstr1 = "\r\n----- Debug info -----\r\n";
-        private const string dbgDumpstr2 = "DebugEnabled: {0}  DebugLogLevel: {1}  isGuiEnabled {2}  AutoRefreshEnabled {3} \r\n";   
-        private const string dbgDumpstr3 = "ReserveAmount: {4}  IsEnabled: {5}  IsInited: {6}  isGuiRunning {7} \r\n";
-        private const string dbgDumpstr4 = "IsRedirectActive: {8}  UseAutoRefreshOption: {9}  AutoRefreshSeconds: {10}  GUIOpacity: {11} \r\n";
-        private const string dbgDumpstr5 = "ResetStatsEnabled: {12}  ResetStatsEvery: {13}min  UseCustomLogfile: {14}  DumpLogOnMapEnd: {15} \r\n";
-        private const string dbgDumpstr6 = "UseCustomDumpFile: {16}  DumpFileFullpath: {17}  \r\n";
-        private const string dbgDumpstrGUIExtra1 = "IsAutoRefreshActive {3}  CoRoutineVehc: {5}  CoRoutineDataReset: {6}  CoRoutineDisplayData: {7} \r\nNextDataResetTime: {8}\r\n";
-        private const string dbgDumpstrGUIExtra2 = "NewGameAppVersion: {0}  CityName: {1}  Paused: {2} \r\n";
-        private const string dbgDumpPaths = "Path Info: \r\n AppBase: {0} \r\n AppExe: {1} \r\n Mods: {2} \r\n Saves: {3} \r\n gContent: {4} \r\n AppLocal: {5} \r\n";
+        private const string DBG_DUMPSTR1 = "\r\n----- Debug info -----\r\n";
+        private const string DBG_DUMPSTR2 = "DebugEnabled: {0}  DebugLogLevel: {1}  isGuiEnabled {2}  AutoRefreshEnabled {3} \r\n";
+        private const string DBG_DUMPSTR3 = "ReserveAmount: {4}  IsEnabled: {5}  IsInited: {6}  isGuiRunning {7} \r\n";
+        private const string DBG_DUMPSTR4 = "IsRedirectActive: {8}  UseAutoRefreshOption: {9}  AutoRefreshSeconds: {10}  GUIOpacity: {11} \r\n";
+        private const string DBG_DUMPSTR5 = "ResetStatsEnabled: {12}  ResetStatsEvery: {13}min  UseCustomLogfile: {14}  DumpLogOnMapEnd: {15} \r\n";
+        private const string DBG_DUMPSTR6 = "UseCustomDumpFile: {16}  DumpFileFullpath: {17}  \r\n";
+        private const string DBG_DUMPSTR_GUI_EXTRA1 = "IsAutoRefreshActive {3}  CoRoutineVehc: {5}  CoRoutineDataReset: {6}  CoRoutineDisplayData: {7} \r\nNextDataResetTime: {8}\r\n";
+        private const string DBG_DUMPSTR_GUI_EXTRA2 = "NewGameAppVersion: {0}  CityName: {1}  Paused: {2} \r\n";
+        private const string DBG_DUMP_PATHS = "Path Info: \r\n AppBase: {0} \r\n AppExe: {1} \r\n Mods: {2} \r\n Saves: {3} \r\n gContent: {4} \r\n AppLocal: {5} \r\n";
 
-        private const string dbgGameVersion = "UnityProd: {0}  UnityPlatform: {1} \r\nProductName: {2}  ProductVersion: {3}  ProductVersionString: {4}\r\n";
+        private const string DBG_GAME_VERSION = "UnityProd: {0}  UnityPlatform: {1} \r\nProductName: {2}  ProductVersion: {3}  ProductVersionString: {4}\r\n";
 
-        private const string sbgMapLimits1 = "#NetSegments: {0} | {1}   #NetNodes: {2} | {3}  #NetLanes: {4} | {5} \r\n";
-        private const string sbgMapLimits2 = "#Buildings: {0} | {1}  #ZonedBlocks: {2} | {3} \r\n";
-        private const string sbgMapLimits3 = "#Transportlines: {4}  #UserProps: {5}  #PathUnits: {6} \r\n#Areas: {8}  #Districts: {9} \r\n#BrokenAssets: {7}\r\n";
-        private const string sbgMapLimits4 = "#Citizens: {0}  #Families: {1}  #ActiveCitzenAgents: {2} \r\n";
+        private const string SBG_MAP_LIMITS1 = "#NetSegments: {0} | {1}   #NetNodes: {2} | {3}  #NetLanes: {4} | {5} \r\n";
+        private const string SBG_MAP_LIMITS2 = "#Buildings: {0} | {1}  #ZonedBlocks: {2} | {3} \r\n";
+        private const string SBG_MAP_LIMITS3 = "#Transportlines: {4}  #UserProps: {5}  #PathUnits: {6} \r\n#Areas: {8}  #Districts: {9} \r\n#BrokenAssets: {7}\r\n";
+        private const string SBG_MAP_LIMITS4 = "#Citizens: {0}  #Families: {1}  #ActiveCitzenAgents: {2} \r\n";
 
 
-        private static object[] tmpVer;
-        private static object[] tmpVehc;
-        private static object[] tmpPaths;
-        private static object[] tmpdbg;
-        private static object[] tmpGuiExtra;
-        private static object[] tmpGuiExtra2;
+        private static object[] TMPVer;
+        private static object[] TMPVehc;
+        private static object[] TMPPaths;
+        private static object[] Tmpdbg;
+        private static object[] TMPGuiExtra;
+        private static object[] TMPGuiExtra2;
 
         //should be enough for most log messages and we want this guy in the HFHeap.
-        private static StringBuilder logSB = new System.Text.StringBuilder(512); 
+        private static readonly StringBuilder LOG_SB = new StringBuilder(512);
 
-        public static void LogExtentedWrapper(DumpOption bMode)
+        public static void logExtentedWrapper(DumpOption bMode)
         {
-            StringBuilder sb = new StringBuilder((bMode | DumpOption.GUIActive) == bMode ? 8192 : 4096);
-            RefreshSourceData(bMode);
-            buildTheString(sb,bMode);
-            DumpStatsToLog(sb.ToString(),bMode);
+            StringBuilder sb = new StringBuilder((bMode | DumpOption.GUI_ACTIVE) == bMode ? 8192 : 4096);
+            refreshSourceData(bMode);
+            buildTheString(sb, bMode);
+            dumpStatsToLog(sb.ToString(), bMode);
         }
 
-        
-        private static void RefreshSourceData(DumpOption bMode)
+
+        private static void refreshSourceData(DumpOption bMode)
         {
             //Version & Platform data
-            tmpVer = new object[] { Application.productName, Application.platform.ToString(),
-                DataLocation.productName, DataLocation.productVersion.ToString(), 
-                DataLocation.productVersionString };
+            TMPVer = new object[]
+            { Application.productName, Application.platform.ToString(),
+              DataLocation.productName, DataLocation.productVersion.ToString(),
+              DataLocation.productVersionString };
             //PathData
-            tmpPaths = new object[]{DataLocation.applicationBase,DataLocation.executableDirectory,
-                DataLocation.modsPath,DataLocation.saveLocation,DataLocation.gameContentPath,DataLocation.localApplicationData};
+            TMPPaths = new object[]
+            { DataLocation.applicationBase, DataLocation.executableDirectory,
+              DataLocation.modsPath, DataLocation.saveLocation, DataLocation.gameContentPath, DataLocation.localApplicationData };
 
             //VehicleData
-            tmpVehc = new object[]{ ((bMode | DumpOption.MapLoaded) == bMode)? Singleton<VehicleManager>.instance.m_vehicleCount.ToString() : "n\\a",
-                    Mod.RESERVEAMOUNT.ToString(),
-                    ((bMode | DumpOption.MapLoaded) == bMode) ? (Singleton<VehicleManager>.instance.m_vehicles.m_size - 1).ToString() : "16383",
-                    (16383 - Mod.RESERVEAMOUNT).ToString(),Mod.timesReservedAttempted.ToString(),
-                    Mod.timesReserveAttemptFailed.ToString(), Mod.timesLimitReached.ToString(),
-                    Mod.timesFailedByReserve.ToString(), Mod.timesFailedToCreate.ToString(), Mod.timesCV_CalledTotal.ToString()};
+            TMPVehc = new object[]
+            { (bMode | DumpOption.MAP_LOADED) == bMode ? Singleton<VehicleManager>.instance.m_vehicleCount.ToString() : "n\\a",
+              Mod.reserveamount.ToString(),
+              (bMode | DumpOption.MAP_LOADED) == bMode ? (Singleton<VehicleManager>.instance.m_vehicles.m_size - 1).ToString() : "16383",
+              (16383 - Mod.reserveamount).ToString(), Mod.timesReservedAttempted.ToString(),
+              Mod.timesReserveAttemptFailed.ToString(), Mod.timesLimitReached.ToString(),
+              Mod.timesFailedByReserve.ToString(), Mod.timesFailedToCreate.ToString(), Mod.timesCvCalledTotal.ToString() };
 
             //debugdata
-            tmpdbg = new object[]{Mod.DEBUG_LOG_ON.ToString(),Mod.DEBUG_LOG_LEVEL.ToString(),Mod.IsGuiEnabled.ToString() ,
-                Mod.UseAutoRefreshOption.ToString(), Mod.RESERVEAMOUNT.ToString(),Mod.IsEnabled.ToString(),Mod.IsInited.ToString(),
-                Loader.isGuiRunning.ToString(), Mod.IsRedirectActive.ToString(),Mod.UseAutoRefreshOption.ToString(),
-                Mod.AutoRefreshSeconds.ToString("F2"),Mod.config.GuiOpacity.ToString("F04"), Mod.config.ResetStatsEveryXMinutesEnabled.ToString(),
-                Mod.config.ResetStatsEveryXMin.ToString("f2"), Mod.config.UseCustomLogFile.ToString(),
-                Mod.config.DumpStatsOnMapEnd.ToString(),Mod.config.UseCustomDumpFile,
-                Mod.config.DumpStatsFilePath};
+            Tmpdbg = new object[]
+            { Mod.debugLOGOn.ToString(), Mod.debugLOGLevel.ToString(), Mod.isGuiEnabled.ToString(),
+              Mod.useAutoRefreshOption.ToString(), Mod.reserveamount.ToString(), Mod.isEnabled.ToString(), Mod.isInited.ToString(),
+              Loader.isGuiRunning.ToString(), Mod.isRedirectActive.ToString(), Mod.useAutoRefreshOption.ToString(),
+              Mod.autoRefreshSeconds.ToString("F2"), Mod.config.guiOpacity.ToString("F04"), Mod.config.resetStatsEveryXMinutesEnabled.ToString(),
+              Mod.config.resetStatsEveryXMin.ToString("f2"), Mod.config.useCustomLogFile.ToString(),
+              Mod.config.dumpStatsOnMapEnd.ToString(), Configuration.USE_CUSTOM_DUMP_FILE,
+              Configuration.DUMP_STATS_FILE_PATH };
 
-            if ((bMode | Helper.DumpOption.GUIActive) == bMode)
-            {            //gui mode exclusive
-                tmpGuiExtra2 = new object[]{(Singleton<SimulationManager>.instance.m_metaData != null) ? Singleton<SimulationManager>.instance.m_metaData.m_newGameAppVersion.ToString():"n/a",
-                (Singleton<SimulationManager>.instance.m_metaData  != null) ? Singleton<SimulationManager>.instance.m_metaData.m_CityName.ToString():"n/a",
-                (Singleton<SimulationManager>.exists == true) ? Singleton<SimulationManager>.instance.SimulationPaused.ToString():"n/a"};
+            if ((bMode | DumpOption.GUI_ACTIVE) == bMode){ //gui mode exclusive
+                TMPGuiExtra2 = new object[]
+                { Singleton<SimulationManager>.instance.m_metaData != null ? Singleton<SimulationManager>.instance.m_metaData.m_newGameAppVersion.ToString() : "n/a",
+                  Singleton<SimulationManager>.instance.m_metaData != null ? Singleton<SimulationManager>.instance.m_metaData.m_CityName : "n/a",
+                  Singleton<SimulationManager>.exists ? Singleton<SimulationManager>.instance.SimulationPaused.ToString() : "n/a" };
 
-                Helper.ExternalData Mytmp;
-                Mytmp = CSLServiceReserveGUI.GetInternalData();
-                tmpGuiExtra = Mytmp.ToStringArray();
+                ExternalData mytmp;
+                mytmp = CslServiceReserveGUI.getInternalData();
+                TMPGuiExtra = mytmp.toStringArray();
                 //CSLServiceReserveGUI.GetInternalData.ToStringArray();
             }
         }
 
 
-        private  static void AddGetPluginList(StringBuilder sb)
+        private static void addGetPluginList(StringBuilder sb)
         {
             int tmpcount = 0;
             sb.AppendLine("\r\n----- Enabled Mod List ------");
-            try
-            {
-
-                foreach (PluginManager.PluginInfo p in Singleton<PluginManager>.instance.GetPluginsInfo())
-                {
-                    if (p.isEnabled)
-                    {
-                        IUserMod[] tmpInstances = p.GetInstances<IUserMod>();
-                        if (tmpInstances.Length == 1) { sb.AppendLine(string.Concat("Mod Fullname: ", tmpInstances[0].Name, "  Description: ", tmpInstances[0].Description)); }
-                        else { sb.AppendLine(string.Concat("(***MultipleInstances***)Mod Fullname: ", tmpInstances[0].Name, "  Description: ", tmpInstances[0].Description)); }
-                        sb.AppendLine(string.Concat("LocalName: ",p.name.ToString(),"  WorkShopID: ", p.publishedFileID.AsUInt64.ToString(), "  AssemblyPath: ", p.modPath, p.assembliesString));
+            try{
+                foreach (PluginManager.PluginInfo p in Singleton<PluginManager>.instance.GetPluginsInfo()){
+                    if (p.isEnabled){
+                        var tmpInstances = p.GetInstances<IUserMod>();
+                        if (tmpInstances.Length == 1) sb.AppendLine(string.Concat("Mod Fullname: ", tmpInstances[0].Name, "  Description: ", tmpInstances[0].Description));
+                        else sb.AppendLine(string.Concat("(***MultipleInstances***)Mod Fullname: ", tmpInstances[0].Name, "  Description: ", tmpInstances[0].Description));
+                        sb.AppendLine(string.Concat("LocalName: ", p.name, "  WorkShopID: ", p.publishedFileID.AsUInt64.ToString(), "  AssemblyPath: ", p.modPath, p.assembliesString));
                         tmpcount++;
                     }
                 }
                 sb.AppendLine(string.Format("{0} Plugins\\Mods are enabled of {1} installed.", tmpcount.ToString(), Singleton<PluginManager>.instance.modCount.ToString()));
-                
             }
-            catch (Exception ex)
-            { Helper.dbgLog("Error getting list of plugins.",ex,true); }
+            catch (Exception ex){
+                dbgLog("Error getting list of plugins.", ex, true);
+            }
 
             ////
             //PackageManager  PkgMrg = Singleton<PackageManager>..instance ;
             //PkgMrg.m
- 
+
 /*            if(Steam.active == true && Steam.workshop != null && PackageManager.noWorkshop == false)
             {
                 PackageManager ppp = Singleton<PackageManager>.instance;
@@ -250,7 +225,7 @@ namespace CSLServiceReserve
                 object[] wksobj = new object[] { tWksCount.ToString(), folderwithfiles.ToString(), filecount.ToString(), (Totalbytes / 1024).ToString() };
                 sb.AppendFormat("\r\nYou are subscribed to {0} workshop items, \r\n stored in about {1} folders, containing about {2} total files\r\n with a total size of {3}kb .", wksobj);
             }
-*/            
+*/
             sb.AppendLine("--------End Plugins--------\r\n");
 //            if(Singleton<SimulationManager>.exists)
 //            {
@@ -264,209 +239,174 @@ namespace CSLServiceReserve
 //            }
         }
 
-        private static string buildTheString(StringBuilder sb,DumpOption bMode)
+        private static void buildTheString(StringBuilder sb, DumpOption bMode)
         {
-            try
-            {
+            try{
 //                Debug.Log(string.Concat("[CSLServiceReserve.Helper] elements tmpVer:", tmpVer.Length.ToString(),
 //                    " tmpPaths:", tmpPaths.Length.ToString()," tmpVehc:", tmpVehc.Length.ToString(),
 //                    " tmpdbg:",tmpdbg.Length.ToString()," tmpGuiExtra:", tmpGuiExtra.Length.ToString(), " tmpguiExtra2:",tmpGuiExtra2.Length.ToString() ));
 
                 // Do our header & Mod version info if Default.
-                sb.Append(DumpStatsHeader);
+                sb.Append(DUMP_STATS_HEADER);
 
-                if ((bMode | DumpOption.Default) == bMode)
-                {
-                    sb.Append(String.Format(DumpVersion,Mod.VERSION_BUILD_NUMBER ,DateTime.Now.ToString()));
-                    sb.AppendLine(String.Format("CSLAppFullVersion: {0}  AppDataFormatVersion: {1}\r\n", BuildConfig.applicationVersionFull.ToString(), BuildConfig.DATA_FORMAT_VERSION.ToString()));
+                if ((bMode | DumpOption.DEFAULT) == bMode){
+                    sb.Append(string.Format(DUMP_VERSION, Mod.VERSION_BUILD_NUMBER, DateTime.Now.ToString()));
+                    sb.AppendLine(string.Format("CSLAppFullVersion: {0}  AppDataFormatVersion: {1}\r\n", BuildConfig.applicationVersionFull, BuildConfig.DATA_FORMAT_VERSION.ToString()));
                 }
 
                 //dump Version and Path data if DebugInfo enabled.
-                if ((bMode | DumpOption.DebugInfo) == bMode)
-                {
-                    sb.Append("raw commandline: " + CommandLine.raw.ToString() + "\r\n");
-                    sb.Append(string.Format(dbgGameVersion, tmpVer));
-                    sb.Append(String.Format(dbgDumpPaths, tmpPaths));
+                if ((bMode | DumpOption.DEBUG_INFO) == bMode){
+                    sb.Append("raw commandline: " + CommandLine.raw + "\r\n");
+                    sb.Append(string.Format(DBG_GAME_VERSION, TMPVer));
+                    sb.Append(string.Format(DBG_DUMP_PATHS, TMPPaths));
                 }
 
                 //dump VechData if enabled.
-                if ((bMode | DumpOption.VehicleData) == bMode)
-                {
-                    sb.AppendFormat(String.Concat(DumpV0 , DumpV1, DumpV2, DumpV3, DumpV4, DumpV5, DumpV6,
-                        Dumpv7, Dumpv8, Dumpv9), tmpVehc); 
-
-                }
+                if ((bMode | DumpOption.VEHICLE_DATA) == bMode)
+                    sb.AppendFormat(string.Concat(DUMP_V0, DUMP_V1, DUMP_V2, DUMP_V3, DUMP_V4, DUMP_V5, DUMP_V6,
+                        DUMPV7, DUMPV8, DUMPV9), TMPVehc);
 
                 //debug into
-                if ((bMode | DumpOption.DebugInfo) == bMode)
-                {
-                    sb.Append(String.Format(string.Concat(dbgDumpstr1,dbgDumpstr2, dbgDumpstr3,
-                    dbgDumpstr4,dbgDumpstr5,dbgDumpstr6), tmpdbg));
-                }
+                if ((bMode | DumpOption.DEBUG_INFO) == bMode)
+                    sb.Append(string.Format(string.Concat(DBG_DUMPSTR1, DBG_DUMPSTR2, DBG_DUMPSTR3,
+                        DBG_DUMPSTR4, DBG_DUMPSTR5, DBG_DUMPSTR6), Tmpdbg));
 
                 //gui | map for sure loaded related things.
-                if ((bMode | DumpOption.GUIActive) == bMode & (bMode | DumpOption.DebugInfo) == bMode)
-                {
-                    sb.Append(String.Format(dbgDumpstrGUIExtra1 ,tmpGuiExtra));
-                    sb.Append(String.Format(dbgDumpstrGUIExtra2, tmpGuiExtra2));
-                    AddLimitData(sb);
+                if ((bMode | DumpOption.GUI_ACTIVE) == bMode & (bMode | DumpOption.DEBUG_INFO) == bMode){
+                    sb.Append(string.Format(DBG_DUMPSTR_GUI_EXTRA1, TMPGuiExtra));
+                    sb.Append(string.Format(DBG_DUMPSTR_GUI_EXTRA2, TMPGuiExtra2));
+                    addLimitData(sb);
                 }
 
                 //dump pluging\mod info
-                if ((bMode | DumpOption.ExtendedInfo) == bMode)
-                {
-                    AddGetPluginList(sb);
-                }
+                if ((bMode | DumpOption.EXTENDED_INFO) == bMode) addGetPluginList(sb);
                 sb.AppendLine("--------End Dump--------\r\n");
-
             }
-            catch (Exception ex)
-            {
-                dbgLog("Error:\r\n",ex,true);
+            catch (Exception ex){
+                dbgLog("Error:\r\n", ex, true);
             }
 
-            if (Mod.DEBUG_LOG_ON & Mod.DEBUG_LOG_LEVEL >= 2) dbgLog("Built the log string to dump.");
-            return sb.ToString();
+            if (Mod.debugLOGOn & Mod.debugLOGLevel >= 2) dbgLog("Built the log string to dump.");
         }
 
         /// <summary>
-        /// Adds building and network limit information into the string builder stream... we added other data why not this.
+        ///     Adds building and network limit information into the string builder stream... we added other data why not this.
         /// </summary>
         /// <param name="sb">an already created stringbuilder object.</param>
-        private static void AddLimitData(StringBuilder sb)
+        private static void addLimitData(StringBuilder sb)
         {
-            try
-            {
-
-                  
+            try{
                 sb.AppendLine("\r\n----- Map Limit Data -----\r\n");
                 NetManager tMgr = Singleton<NetManager>.instance;
-                object[] tmpdata = new object[]{tMgr.m_segmentCount.ToString(), tMgr.m_segments.ItemCount().ToString(),
-                    tMgr.m_nodeCount.ToString(), tMgr.m_nodes.ItemCount().ToString(), tMgr.m_laneCount.ToString(),
-                    tMgr.m_lanes.ItemCount().ToString()};
-                sb.AppendFormat(sbgMapLimits1,tmpdata);
+                object[] tmpdata =
+                { tMgr.m_segmentCount.ToString(), tMgr.m_segments.ItemCount().ToString(),
+                  tMgr.m_nodeCount.ToString(), tMgr.m_nodes.ItemCount().ToString(), tMgr.m_laneCount.ToString(),
+                  tMgr.m_lanes.ItemCount().ToString() };
+                sb.AppendFormat(SBG_MAP_LIMITS1, tmpdata);
 
                 CitizenManager cMgr = Singleton<CitizenManager>.instance;
-                tmpdata = new object[] {cMgr.m_citizens.ItemCount().ToString(),cMgr.m_units.ItemCount().ToString(),
-                    cMgr.m_instances.ItemCount().ToString() };
-                sb.AppendFormat(sbgMapLimits4, tmpdata);
+                tmpdata = new object[]
+                { cMgr.m_citizens.ItemCount().ToString(), cMgr.m_units.ItemCount().ToString(),
+                  cMgr.m_instances.ItemCount().ToString() };
+                sb.AppendFormat(SBG_MAP_LIMITS4, tmpdata);
 
-                tmpdata = new object[]{Singleton<BuildingManager>.instance.m_buildingCount.ToString(),
-                    Singleton<BuildingManager>.instance.m_buildings.ItemCount().ToString(), Singleton<ZoneManager>.instance.m_blockCount.ToString(),
-                    Singleton<ZoneManager>.instance.m_blocks.ItemCount(),Singleton<TransportManager>.instance.m_lines.ItemCount().ToString(),
-                    Singleton<PropManager>.instance.m_props.ItemCount(),Singleton<PathManager>.instance.m_pathUnits.ItemCount(),
-                    Singleton<LoadingManager>.instance.m_brokenAssets,Singleton<GameAreaManager>.instance.m_areaCount.ToString(),
-                Singleton<DistrictManager>.instance.m_districts.ItemCount().ToString()};
-                sb.AppendFormat(sbgMapLimits2, tmpdata);
-                sb.AppendFormat(sbgMapLimits3, tmpdata);
-
-
+                tmpdata = new object[]
+                { Singleton<BuildingManager>.instance.m_buildingCount.ToString(),
+                  Singleton<BuildingManager>.instance.m_buildings.ItemCount().ToString(), Singleton<ZoneManager>.instance.m_blockCount.ToString(),
+                  Singleton<ZoneManager>.instance.m_blocks.ItemCount(), Singleton<TransportManager>.instance.m_lines.ItemCount().ToString(),
+                  Singleton<PropManager>.instance.m_props.ItemCount(), Singleton<PathManager>.instance.m_pathUnits.ItemCount(),
+                  Singleton<LoadingManager>.instance.m_brokenAssets, Singleton<GameAreaManager>.instance.m_areaCount.ToString(),
+                  Singleton<DistrictManager>.instance.m_districts.ItemCount().ToString() };
+                sb.AppendFormat(SBG_MAP_LIMITS2, tmpdata);
+                sb.AppendFormat(SBG_MAP_LIMITS3, tmpdata);
             }
-            catch(Exception ex)
-            {
-                dbgLog("Error:\r\n",ex,true);
+            catch (Exception ex){
+                dbgLog("Error:\r\n", ex, true);
             }
-
         }
 
 
         /// <summary>
-        /// Dumps our stats to a custom file or normal log file.
+        ///     Dumps our stats to a custom file or normal log file.
         /// </summary>
         /// <param name="strText">The string data.</param>
         /// <param name="bMode">The options flags that was used to create it (used to know if custom file or not)</param>
-        public static void DumpStatsToLog(string strText, DumpOption bMode = 0)
+        public static void dumpStatsToLog(string strText, DumpOption bMode = 0)
         {
-            try
-            {
+            try{
                 string strTempPath = "";
                 bool bDumpToLog = true;
-                if ((bMode | DumpOption.UseSeperateFile) == bMode)
-                {
-                    if (Mod.DEBUG_LOG_LEVEL > 1) dbgLog("\r\n-----Using Seperate file mode flagged" + bMode.ToString() + "-----\r\n");
-                    if (Mod.config.UseCustomDumpFile)
-                    {
-                        if (Mod.DEBUG_LOG_LEVEL > 1) { dbgLog("\r\n\r\n--------------Using Seperate file enabled-----\r\n"); }
-                        if (Mod.DEBUG_LOG_LEVEL > 1)
-                        {
-                            dbgLog("\r\n\r\n[debugdata] ---" + Mod.config.DumpStatsFilePath + " existspath: " + 
-                            Path.GetDirectoryName(Mod.config.DumpStatsFilePath) + "  combopath: " + 
-                            Path.Combine(DataLocation.executableDirectory.ToString(), Mod.config.DumpStatsFilePath));
-                        }
-                        strTempPath = System.IO.Directory.Exists(Path.GetDirectoryName(Mod.config.DumpStatsFilePath)) ? Mod.config.DumpStatsFilePath.ToString() : Path.Combine(DataLocation.executableDirectory.ToString(), Mod.config.DumpStatsFilePath);
-                        bDumpToLog = false; //flag us custom file.
-                    }
+                if ((bMode | DumpOption.USE_SEPERATE_FILE) == bMode){
+                    if (Mod.debugLOGLevel > 1) dbgLog("\r\n-----Using Seperate file mode flagged" + bMode + "-----\r\n");
                 }
 
-                if (bDumpToLog)
-                {
-                    if (Mod.DEBUG_LOG_ON) { dbgLog("\r\n Dumping to default game log."); }
+                if (bDumpToLog){
+                    if (Mod.debugLOGOn) dbgLog("\r\n Dumping to default game log.");
                     Debug.Log(strText);
                 }
-                else
-                {
-                    if (Mod.DEBUG_LOG_ON) { dbgLog("\r\n Dumping to custom log. " + strTempPath); }
-                    using (StreamWriter streamWriter = new StreamWriter(strTempPath, true))
-                    {
-                        streamWriter.WriteLine(strText);
-                    }
-                }
             }
-            catch (Exception ex)
-            {
-                dbgLog("Error:\r\n",ex,true);
+            catch (Exception ex){
+                dbgLog("Error:\r\n", ex, true);
             }
-
         }
 
 
         /// <summary>
-        /// Our LogWrapper...used everywhere.
+        ///     Our LogWrapper...used everywhere.
         /// </summary>
         /// <param name="sText">Text to log</param>
         /// <param name="ex">An Exception - if not null it's basic data will be printed.</param>
         /// <param name="bDumpStack">If an Exception was passed do you want the stack trace?</param>
         /// <param name="bNoIncMethod">If for some reason you don't want the method name prefaced with the log line.</param>
-        public static void dbgLog(string sText, Exception ex = null, bool bDumpStack = false, bool bNoIncMethod = false) 
+        public static void dbgLog(string sText, Exception ex = null, bool bDumpStack = false, bool bNoIncMethod = false)
         {
-            try
-            {
-                logSB.Length = 0;
-                string sPrefix = string.Concat("[", Mod.MOD_DBG_Prefix);
-                if (bNoIncMethod) { string.Concat(sPrefix, "] "); }
-                else
-                {
-                    System.Diagnostics.StackFrame oStack = new System.Diagnostics.StackFrame(1); //pop back one frame, ie our caller.
+            try{
+                LOG_SB.Length = 0;
+                string sPrefix = string.Concat("[", Mod.MOD_DBG_PREFIX);
+                if (bNoIncMethod){ string.Concat(sPrefix, "] "); }
+                else{
+                    StackFrame oStack = new StackFrame(1); //pop back one frame, ie our caller.
                     sPrefix = string.Concat(sPrefix, ":", oStack.GetMethod().DeclaringType.Name, ".", oStack.GetMethod().Name, "] ");
                 }
-                logSB.Append(string.Concat(sPrefix, sText));
+                LOG_SB.Append(string.Concat(sPrefix, sText));
 
-                if (ex != null)
-                {
-                    logSB.Append(string.Concat("\r\nException: ", ex.Message.ToString()));
-                }
-                if (bDumpStack)
-                {
-                    logSB.Append(string.Concat("\r\nStackTrace: ", ex.StackTrace.ToString()));
-                }
-                if (Mod.config != null && Mod.config.UseCustomLogFile == true)
-                {
-                    string strPath = System.IO.Directory.Exists(Path.GetDirectoryName(Mod.config.CustomLogFilePath)) ? Mod.config.CustomLogFilePath.ToString() : Path.Combine(DataLocation.executableDirectory.ToString(), Mod.config.CustomLogFilePath);
-                    using (StreamWriter streamWriter = new StreamWriter(strPath, true))
-                    {
-                        streamWriter.WriteLine(logSB.ToString());
+                if (ex != null) LOG_SB.Append(string.Concat("\r\nException: ", ex.Message));
+                if (bDumpStack) LOG_SB.Append(string.Concat("\r\nStackTrace: ", ex.StackTrace));
+                if (Mod.config != null && Mod.config.useCustomLogFile){
+                    string strPath = Directory.Exists(Path.GetDirectoryName(Configuration.CUSTOM_LOG_FILE_PATH)) ? Configuration.CUSTOM_LOG_FILE_PATH : Path.Combine(DataLocation.executableDirectory, Configuration.CUSTOM_LOG_FILE_PATH);
+                    using (StreamWriter streamWriter = new StreamWriter(strPath, true)){
+                        streamWriter.WriteLine(LOG_SB.ToString());
                     }
                 }
-                else 
-                {
-                    Debug.Log(logSB.ToString());
+                else{
+                    Debug.Log(LOG_SB.ToString());
                 }
             }
-            catch (Exception Exp)
+            catch (Exception exp){
+                Debug.Log(string.Concat("[CSLServiceReserve.Helper.dbgLog()] Error in log attempt!  ", exp.Message));
+            }
+        }
+        public class ExternalData
+        {
+            public string cachedname = "n/a";
+            public bool coDataRefreshEnabled;
+            public bool coDisplayRefreshEnabled;
+            public bool coVechRefreshEnabled;
+            public bool isAutoRefreshActive;
+            public bool isVisable;
+            public string name = "n/a";
+            public DateTime statsResetTime;
+            public string tag = "n/a";
+
+            public object[] toStringArray()
             {
-                Debug.Log(string.Concat("[CSLServiceReserve.Helper.dbgLog()] Error in log attempt!  ", Exp.Message.ToString()));
+                object[] tmpStrArr =
+                { name, cachedname,
+                  tag, isAutoRefreshActive.ToString(), isVisable.ToString(), coVechRefreshEnabled.ToString(),
+                  coDataRefreshEnabled.ToString(), coDisplayRefreshEnabled.ToString(),
+                  statsResetTime.ToString("MM/dd/yyyy hh:mm:ss.fff tt") };
+                return tmpStrArr;
             }
         }
     }
-
 }
