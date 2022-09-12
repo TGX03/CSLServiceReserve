@@ -82,7 +82,6 @@ namespace CSLServiceReserve
         public static void validateConfig(ref Configuration tmpConfig)
         {
             if (tmpConfig.guiOpacity > 1.0f | tmpConfig.guiOpacity < 0.1f) tmpConfig.guiOpacity = 1.0f;
-            if (tmpConfig.vehicleReserveAmount > 512 | tmpConfig.vehicleReserveAmount < 2) tmpConfig.vehicleReserveAmount = 16;
             if (tmpConfig.autoRefreshSeconds > 60.0f | tmpConfig.autoRefreshSeconds < 1.0f) tmpConfig.autoRefreshSeconds = 3.0f;
             if (tmpConfig.refreshVehicleCounterSeconds > 10.0f | tmpConfig.refreshVehicleCounterSeconds < 0.05f) tmpConfig.refreshVehicleCounterSeconds = 0.180f;
             if (tmpConfig.resetStatsEveryXMin < 1 | tmpConfig.resetStatsEveryXMin > 10000000) tmpConfig.resetStatsEveryXMin = 20;
