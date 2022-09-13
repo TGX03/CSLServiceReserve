@@ -481,12 +481,12 @@ namespace CSLServiceReserve
 
 
 
-        private static void redirectCalls(Type type1, Type type2, string p)
+        private static void redirectCalls(Type type1, Type type2, string originalMethod, string newMethod)
         {
             BindingFlags bindflags1 = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
             BindingFlags bindflags2 = BindingFlags.Static | BindingFlags.NonPublic;
-            MethodInfo theMethod = type1.GetMethod(p, bindflags1);
-            REDIRECT_DIC.Add(theMethod, RedirectionHelper.redirectCalls(theMethod, type2.GetMethod(p, bindflags2), false));
+            MethodInfo theMethod = type1.GetMethod(originalMethod, bindflags1);
+            REDIRECT_DIC.Add(theMethod, RedirectionHelper.redirectCalls(theMethod, type2.GetMethod(newMethod, bindflags2), false));
             //RedirectionHelper.RedirectCalls(type1.GetMethod(p, bindflags1), type2.GetMethod(p, bindflags2), false);
         }
     }
