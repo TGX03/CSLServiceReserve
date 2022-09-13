@@ -447,7 +447,7 @@ namespace CSLServiceReserve
 
             try{
                 redirectCalls(typeof(VehicleManager), typeof(KhVehicleManager), "CreateVehicle", "createVehicle");
-                redirectCalls(typeof(VehicleManager, typeof(KhVehicleManager), "ReleaseVehicle", "releaseVehicle");
+                redirectCalls(typeof(VehicleManager), typeof(KhVehicleManager), "ReleaseVehicle", "releaseVehicle");
                 isRedirectActive = true;
 
                 if (debugLOGOn) Helper.dbgLog("Redirected function calls.");
