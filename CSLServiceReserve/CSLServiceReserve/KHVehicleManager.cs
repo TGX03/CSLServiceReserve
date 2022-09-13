@@ -42,6 +42,7 @@ namespace CSLServiceReserve
                                 NormalVehicleCount++;
                             }
                         }
+                        Initialized = true;
                     }
                 }
             }
