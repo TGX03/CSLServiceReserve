@@ -129,7 +129,7 @@ namespace CSLServiceReserve
             info.m_vehicleAI.CreateVehicle(vehicle, ref vMgr.m_vehicles.m_buffer[vehicle]);
             info.m_vehicleAI.FrameDataUpdated(vehicle, ref vMgr.m_vehicles.m_buffer[vehicle], ref vMgr.m_vehicles.m_buffer[vehicle].m_frame0);
             vMgr.m_vehicleCount = (int)(vMgr.m_vehicles.ItemCount() - 1);
-            if (normalVehicle) Interlocked.Increment(ref NormalVehicleCount);
+            if (normalVehicle) NormalVehicleCount++;
             return true;
         }
 
