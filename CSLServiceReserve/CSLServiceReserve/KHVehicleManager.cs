@@ -36,8 +36,7 @@ namespace CSLServiceReserve
                 lock (Lock){
                     if (!Initialized){
                         Array16<Vehicle> vehicles = VehicleManager.instance.m_vehicles;
-                        for (ushort i = 0; i < vehicles.m_size; i++){
-                            Vehicle current = vehicles.m_buffer[i];
+                        foreach (Vehicle current in vehicles.m_buffer){
                             if (!VALID_REASONS.Contains((TransferManager.TransferReason)current.m_transferType)){
                                 NormalVehicleCount++;
                             }
