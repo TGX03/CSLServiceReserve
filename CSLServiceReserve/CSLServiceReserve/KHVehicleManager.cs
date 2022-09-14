@@ -148,60 +148,60 @@ namespace CSLServiceReserve
             data.m_flags |= Vehicle.Flags.Deleted;
             data.Unspawn(vehicle);
             data.Info.m_vehicleAI.ReleaseVehicle(vehicle, ref data);
-            if (data.m_leadingVehicle != (ushort)0){
-                if ((int)VehicleManager.instance.m_vehicles.m_buffer[(int)data.m_leadingVehicle].m_trailingVehicle == (int)vehicle)
-                    VehicleManager.instance.m_vehicles.m_buffer[(int)data.m_leadingVehicle].m_trailingVehicle = (ushort)0;
-                data.m_leadingVehicle = (ushort)0;
+            if (data.m_leadingVehicle != 0){
+                if (VehicleManager.instance.m_vehicles.m_buffer[data.m_leadingVehicle].m_trailingVehicle == vehicle)
+                    VehicleManager.instance.m_vehicles.m_buffer[data.m_leadingVehicle].m_trailingVehicle = 0;
+                data.m_leadingVehicle = 0;
             }
-            if (data.m_trailingVehicle != (ushort)0){
-                if ((int)VehicleManager.instance.m_vehicles.m_buffer[(int)data.m_trailingVehicle].m_leadingVehicle == (int)vehicle)
-                    VehicleManager.instance.m_vehicles.m_buffer[(int)data.m_trailingVehicle].m_leadingVehicle = (ushort)0;
-                data.m_trailingVehicle = (ushort)0;
+            if (data.m_trailingVehicle != 0){
+                if (VehicleManager.instance.m_vehicles.m_buffer[data.m_trailingVehicle].m_leadingVehicle == vehicle)
+                    VehicleManager.instance.m_vehicles.m_buffer[data.m_trailingVehicle].m_leadingVehicle = 0;
+                data.m_trailingVehicle = 0;
             }
 
             // This originally was the "Release Water" method from the original VehicleManager
-            if (data.m_waterSource == (ushort)0)
+            if (data.m_waterSource == 0)
                 return;
             Singleton<TerrainManager>.instance.WaterSimulation.ReleaseWaterSource(data.m_waterSource);
-            data.m_waterSource = (ushort)0;
+            data.m_waterSource = 0;
 
-            if (data.m_cargoParent != (ushort)0){
+            if (data.m_cargoParent != 0){
                 ushort index1 = 0;
-                ushort index2 = VehicleManager.instance.m_vehicles.m_buffer[(int)data.m_cargoParent].m_firstCargo;
+                ushort index2 = VehicleManager.instance.m_vehicles.m_buffer[data.m_cargoParent].m_firstCargo;
                 int num = 0;
-                while (index2 != (ushort)0){
-                    if ((int)index2 == (int)vehicle){
-                        if (index1 == (ushort)0){
-                            VehicleManager.instance.m_vehicles.m_buffer[(int)data.m_cargoParent].m_firstCargo = data.m_nextCargo;
+                while (index2 != 0){
+                    if (index2 == vehicle){
+                        if (index1 == 0){
+                            VehicleManager.instance.m_vehicles.m_buffer[data.m_cargoParent].m_firstCargo = data.m_nextCargo;
                             break;
                         }
-                        VehicleManager.instance.m_vehicles.m_buffer[(int)index1].m_nextCargo = data.m_nextCargo;
+                        VehicleManager.instance.m_vehicles.m_buffer[index1].m_nextCargo = data.m_nextCargo;
                         break;
                     }
                     index1 = index2;
-                    index2 = VehicleManager.instance.m_vehicles.m_buffer[(int)index2].m_nextCargo;
+                    index2 = VehicleManager.instance.m_vehicles.m_buffer[index2].m_nextCargo;
                     if (++num > 16384){
                         CODebugBase<LogChannel>.Error(LogChannel.Core, "Invalid list detected!\n" + System.Environment.StackTrace);
                         break;
                     }
                 }
-                data.m_cargoParent = (ushort)0;
-                data.m_nextCargo = (ushort)0;
+                data.m_cargoParent = 0;
+                data.m_nextCargo = 0;
             }
-            if (data.m_firstCargo != (ushort)0){
+            if (data.m_firstCargo != 0){
                 ushort index = data.m_firstCargo;
                 int num = 0;
-                while (index != (ushort)0){
-                    ushort nextCargo = VehicleManager.instance.m_vehicles.m_buffer[(int)index].m_nextCargo;
-                    VehicleManager.instance.m_vehicles.m_buffer[(int)index].m_cargoParent = (ushort)0;
-                    VehicleManager.instance.m_vehicles.m_buffer[(int)index].m_nextCargo = (ushort)0;
+                while (index != 0){
+                    ushort nextCargo = VehicleManager.instance.m_vehicles.m_buffer[index].m_nextCargo;
+                    VehicleManager.instance.m_vehicles.m_buffer[index].m_cargoParent = (ushort)0;
+                    VehicleManager.instance.m_vehicles.m_buffer[index].m_nextCargo = (ushort)0;
                     index = nextCargo;
                     if (++num > 16384){
                         CODebugBase<LogChannel>.Error(LogChannel.Core, "Invalid list detected!\n" + System.Environment.StackTrace);
                         break;
                     }
                 }
-                data.m_firstCargo = (ushort)0;
+                data.m_firstCargo = 0;
             }
             if (data.m_path != 0U){
                 Singleton<PathManager>.instance.ReleasePath(data.m_path);
