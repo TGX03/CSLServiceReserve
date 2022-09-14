@@ -137,7 +137,7 @@ namespace CSLServiceReserve
         private static void releaseVehicle(ushort vehicle)
         {
             Vehicle data = VehicleManager.instance.m_vehicles.m_buffer[vehicle];
-            Interlocked.Decrement(ref NormalVehicleCount);
+            if (VALID_REASONS.Contains((TransferManager.TransferReason)data.m_transferType)) NormalVehicleCount--;
 
             // VehicleManager.instance is just the copied method from VehicleManager
             if (data.m_flags == ~(Vehicle.Flags.Created | Vehicle.Flags.Deleted | Vehicle.Flags.Spawned | Vehicle.Flags.Inverted | Vehicle.Flags.TransferToTarget | Vehicle.Flags.TransferToSource | Vehicle.Flags.Emergency1 | Vehicle.Flags.Emergency2 | Vehicle.Flags.WaitingPath | Vehicle.Flags.Stopped | Vehicle.Flags.Leaving
