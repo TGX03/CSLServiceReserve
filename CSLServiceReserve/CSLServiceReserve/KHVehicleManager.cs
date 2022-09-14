@@ -13,7 +13,7 @@ namespace CSLServiceReserve
     internal static class KhVehicleManager
     {
         private static readonly HashSet<TransferManager.TransferReason> VALID_REASONS = new HashSet<TransferManager.TransferReason>();
-        private static int NormalVehicleCount = 0;
+        private static ushort NormalVehicleCount = 0;
         private static bool Initialized = false;
         private static readonly object Lock = new object();
 
