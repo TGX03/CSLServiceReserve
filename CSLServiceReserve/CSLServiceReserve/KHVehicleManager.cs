@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
-using ColossalFramework;
 using ColossalFramework.Math;
-using JetBrains.Annotations;
 using UnityEngine;
 //using ColossalFramework.Steamworks;
 
@@ -16,8 +13,12 @@ namespace CSLServiceReserve
         private static readonly HashSet<TransferManager.TransferReason> VALID_REASONS = new HashSet<TransferManager.TransferReason>();
         private static volatile int NormalVehicleCount = 0;
         private static readonly object Lock = new object();
-        private static readonly MethodInfo actualRelease = VehicleManager.instance.GetType().GetMethod("ReleaseVehicleImplementation", BindingFlags.NonPublic | BindingFlags.Instance);
 
+        public static ushort VehicleCount
+        {
+            get { return (ushort) NormalVehicleCount; }
+        }
+        
         static KhVehicleManager()
         {
             TransferManager.TransferReason[] reasons =

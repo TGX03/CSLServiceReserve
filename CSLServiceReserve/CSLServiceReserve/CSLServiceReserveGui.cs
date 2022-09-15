@@ -130,8 +130,8 @@ namespace CSLServiceReserve
         private void createTextLabels()
         {
             mCurrentNumOfVehText = AddUIComponent<UILabel>();
-            mCurrentNumOfVehText.text = string.Concat("Total number of vehicles in use: (", (Singleton<VehicleManager>.instance.m_vehicles.m_size - 1).ToString(), " max) ");
-            mCurrentNumOfVehText.tooltip = "The present number of vehicles the game was last actively using.\n #ResInUse: is the number of reserved vehicles in use during last update.";
+            mCurrentNumOfVehText.text = string.Concat("Total number of non-reserved vehicleds:");
+            mCurrentNumOfVehText.tooltip = "The present number of non-reserved vehicles the game was last actively using.\n #ResInUse: is the number of reserved vehicles in use during last update.";
             mCurrentNumOfVehText.relativePosition = new Vector3(SPACING, 50f);
             //m_NumOfVehText.minimumSize = new Vector2(100, 20);
             //m_NumOfVehText.maximumSize = new Vector2(this.width - SPACING * 2, 30);
@@ -355,9 +355,9 @@ namespace CSLServiceReserve
         {
             //we don't need to lookup\init these two up every x milliseconds.
             float tmpfloattime = Mod.config.refreshVehicleCounterSeconds;
-            int tmpResInUse = 0;
-            int vehcCount = 0;
+            int vehcCount = KhVehicleManager.VehicleCount;
             VehicleManager vMgr = Singleton<VehicleManager>.instance;
+            int tmpResInUse = vMgr.m_vehicleCount - vehcCount;
             if (coVehcRefreshEnabled){
                 if (Mod.debugLOGOn & Mod.debugLOGLevel > 0) Helper.dbgLog("Refresh vehicleCount* coroutine exited; Only one allowed at a time.");
                 yield break;
@@ -365,9 +365,7 @@ namespace CSLServiceReserve
 
             while (isVisible & mAutoRefreshCheckbox.isChecked){
                 coVehcRefreshEnabled = true;
-                vehcCount = vMgr.m_vehicleCount;
-                tmpResInUse = vehcCount - ((int)(vMgr.m_vehicles.m_size - 1) - Mod.reserveamount);
-                mCurrentNumOfVehValues.text = string.Concat(vehcCount.ToString(), "    ResInUse: ", tmpResInUse < 0 ? "0" : tmpResInUse.ToString());
+                mCurrentNumOfVehValues.text = string.Concat(vehcCount.ToString(), "    ResInUse: ", tmpResInUse);
                 yield return new WaitForSeconds(tmpfloattime);
             }
             coVehcRefreshEnabled = false;
