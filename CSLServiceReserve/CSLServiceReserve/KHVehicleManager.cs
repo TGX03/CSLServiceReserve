@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using ColossalFramework;
 using ColossalFramework.Math;
@@ -13,9 +14,9 @@ namespace CSLServiceReserve
     internal static class KhVehicleManager
     {
         private static readonly HashSet<TransferManager.TransferReason> VALID_REASONS = new HashSet<TransferManager.TransferReason>();
-        private static ushort NormalVehicleCount = 0;
-        private static bool Initialized = false;
+        private static volatile int NormalVehicleCount = 0;
         private static readonly object Lock = new object();
+        private static readonly MethodInfo actualRelease = VehicleManager.instance.GetType().GetMethod("ReleaseVehicleImplementation", BindingFlags.NonPublic | BindingFlags.Instance);
 
         static KhVehicleManager()
         {
@@ -28,24 +29,11 @@ namespace CSLServiceReserve
               TransferManager.TransferReason.EvacuateVipC, TransferManager.TransferReason.EvacuateVipD, TransferManager.TransferReason.Monorail, TransferManager.TransferReason.Ferry, TransferManager.TransferReason.Blimp, TransferManager.TransferReason.Mail, TransferManager.TransferReason.Trolleybus,
               TransferManager.TransferReason.CableCar, TransferManager.TransferReason.IncomingMail, TransferManager.TransferReason.IntercityBus, TransferManager.TransferReason.OutgoingMail, TransferManager.TransferReason.SortedMail, TransferManager.TransferReason.UnsortedMail };
             VALID_REASONS.UnionWith(reasons.ToList());
+            new Thread(countVehicles).Start();
         }
 
         private static bool createVehicle(VehicleManager vMgr, out ushort vehicle, ref Randomizer r, VehicleInfo info, Vector3 position, TransferManager.TransferReason type, bool transferToSource, bool transferToTarget)
         {
-            if (!Initialized){
-                lock (Lock){
-                    if (!Initialized){
-                        Array16<Vehicle> vehicles = VehicleManager.instance.m_vehicles;
-                        foreach (Vehicle current in vehicles.m_buffer){
-                            if (!VALID_REASONS.Contains((TransferManager.TransferReason)current.m_transferType)){
-                                NormalVehicleCount++;
-                            }
-                        }
-                        Initialized = true;
-                    }
-                }
-            }
-
             bool attemptFlag = false;
             uint reserveMax = vMgr.m_vehicles.m_size - 1 - Mod.reserveamount; //we subtract 1 cause game doesn't use entry 0 for a real vehicle.
             Mod.timesCvCalledTotal++;                                         //stat tracking.
@@ -129,93 +117,23 @@ namespace CSLServiceReserve
             info.m_vehicleAI.CreateVehicle(vehicle, ref vMgr.m_vehicles.m_buffer[vehicle]);
             info.m_vehicleAI.FrameDataUpdated(vehicle, ref vMgr.m_vehicles.m_buffer[vehicle], ref vMgr.m_vehicles.m_buffer[vehicle].m_frame0);
             vMgr.m_vehicleCount = (int)(vMgr.m_vehicles.ItemCount() - 1);
-            if (normalVehicle) NormalVehicleCount++;
+            if (normalVehicle) Interlocked.Increment(ref NormalVehicleCount);
             return true;
         }
 
-        private static void releaseVehicle(ushort vehicle)
+        private static void countVehicles()
         {
-            Vehicle data = VehicleManager.instance.m_vehicles.m_buffer[vehicle];
-            if (VALID_REASONS.Contains((TransferManager.TransferReason)data.m_transferType)) NormalVehicleCount--;
-
-            // This is just the copied method from VehicleManager
-            if (data.m_flags == ~(Vehicle.Flags.Created | Vehicle.Flags.Deleted | Vehicle.Flags.Spawned | Vehicle.Flags.Inverted | Vehicle.Flags.TransferToTarget | Vehicle.Flags.TransferToSource | Vehicle.Flags.Emergency1 | Vehicle.Flags.Emergency2 | Vehicle.Flags.WaitingPath | Vehicle.Flags.Stopped | Vehicle.Flags.Leaving
-                | Vehicle.Flags.Arriving | Vehicle.Flags.Reversed | Vehicle.Flags.TakingOff | Vehicle.Flags.Flying | Vehicle.Flags.Landing | Vehicle.Flags.WaitingSpace | Vehicle.Flags.WaitingCargo | Vehicle.Flags.GoingBack | Vehicle.Flags.WaitingTarget | Vehicle.Flags.Importing | Vehicle.Flags.Exporting | Vehicle.Flags.Parking
-                | Vehicle.Flags.CustomName | Vehicle.Flags.OnGravel | Vehicle.Flags.WaitingLoading | Vehicle.Flags.Congestion | Vehicle.Flags.DummyTraffic | Vehicle.Flags.Underground | Vehicle.Flags.Transition | Vehicle.Flags.InsideBuilding | Vehicle.Flags.LeftHandDrive))
-                return;
-            Singleton<InstanceManager>.instance.ReleaseInstance(new InstanceID()
-            { Vehicle = vehicle });
-            data.m_flags |= Vehicle.Flags.Deleted;
-            data.Unspawn(vehicle);
-            data.Info.m_vehicleAI.ReleaseVehicle(vehicle, ref data);
-            if (data.m_leadingVehicle != 0){
-                if (VehicleManager.instance.m_vehicles.m_buffer[data.m_leadingVehicle].m_trailingVehicle == vehicle)
-                    VehicleManager.instance.m_vehicles.m_buffer[data.m_leadingVehicle].m_trailingVehicle = 0;
-                data.m_leadingVehicle = 0;
-            }
-            if (data.m_trailingVehicle != 0){
-                if (VehicleManager.instance.m_vehicles.m_buffer[data.m_trailingVehicle].m_leadingVehicle == vehicle)
-                    VehicleManager.instance.m_vehicles.m_buffer[data.m_trailingVehicle].m_leadingVehicle = 0;
-                data.m_trailingVehicle = 0;
-            }
-
-            // This originally was the "Release Water" method from the original VehicleManager
-            if (data.m_waterSource == 0)
-                return;
-            Singleton<TerrainManager>.instance.WaterSimulation.ReleaseWaterSource(data.m_waterSource);
-            data.m_waterSource = 0;
-
-            if (data.m_cargoParent != 0){
-                ushort index1 = 0;
-                ushort index2 = VehicleManager.instance.m_vehicles.m_buffer[data.m_cargoParent].m_firstCargo;
-                int num = 0;
-                while (index2 != 0){
-                    if (index2 == vehicle){
-                        if (index1 == 0){
-                            VehicleManager.instance.m_vehicles.m_buffer[data.m_cargoParent].m_firstCargo = data.m_nextCargo;
-                            break;
-                        }
-                        VehicleManager.instance.m_vehicles.m_buffer[index1].m_nextCargo = data.m_nextCargo;
-                        break;
-                    }
-                    index1 = index2;
-                    index2 = VehicleManager.instance.m_vehicles.m_buffer[index2].m_nextCargo;
-                    if (++num > 16384){
-                        CODebugBase<LogChannel>.Error(LogChannel.Core, "Invalid list detected!\n" + System.Environment.StackTrace);
-                        break;
+            while (true){
+                int result = 0;
+                Array16<Vehicle> vehicles = VehicleManager.instance.m_vehicles;
+                foreach (Vehicle current in vehicles.m_buffer){
+                    if (!VALID_REASONS.Contains((TransferManager.TransferReason)current.m_transferType)){
+                        result++;
                     }
                 }
-                data.m_cargoParent = 0;
-                data.m_nextCargo = 0;
+                NormalVehicleCount = result;
+                Thread.Sleep(500);
             }
-            if (data.m_firstCargo != 0){
-                ushort index = data.m_firstCargo;
-                int num = 0;
-                while (index != 0){
-                    ushort nextCargo = VehicleManager.instance.m_vehicles.m_buffer[index].m_nextCargo;
-                    VehicleManager.instance.m_vehicles.m_buffer[index].m_cargoParent = (ushort)0;
-                    VehicleManager.instance.m_vehicles.m_buffer[index].m_nextCargo = (ushort)0;
-                    index = nextCargo;
-                    if (++num > 16384){
-                        CODebugBase<LogChannel>.Error(LogChannel.Core, "Invalid list detected!\n" + System.Environment.StackTrace);
-                        break;
-                    }
-                }
-                data.m_firstCargo = 0;
-            }
-            if (data.m_path != 0U){
-                Singleton<PathManager>.instance.ReleasePath(data.m_path);
-                data.m_path = 0U;
-            }
-            if (data.m_citizenUnits != 0U){
-                Singleton<CitizenManager>.instance.ReleaseUnits(data.m_citizenUnits);
-                data.m_citizenUnits = 0U;
-            }
-            data.m_flags = ~(Vehicle.Flags.Created | Vehicle.Flags.Deleted | Vehicle.Flags.Spawned | Vehicle.Flags.Inverted | Vehicle.Flags.TransferToTarget | Vehicle.Flags.TransferToSource | Vehicle.Flags.Emergency1 | Vehicle.Flags.Emergency2 | Vehicle.Flags.WaitingPath | Vehicle.Flags.Stopped | Vehicle.Flags.Leaving
-                | Vehicle.Flags.Arriving | Vehicle.Flags.Reversed | Vehicle.Flags.TakingOff | Vehicle.Flags.Flying | Vehicle.Flags.Landing | Vehicle.Flags.WaitingSpace | Vehicle.Flags.WaitingCargo | Vehicle.Flags.GoingBack | Vehicle.Flags.WaitingTarget | Vehicle.Flags.Importing | Vehicle.Flags.Exporting | Vehicle.Flags.Parking
-                | Vehicle.Flags.CustomName | Vehicle.Flags.OnGravel | Vehicle.Flags.WaitingLoading | Vehicle.Flags.Congestion | Vehicle.Flags.DummyTraffic | Vehicle.Flags.Underground | Vehicle.Flags.Transition | Vehicle.Flags.InsideBuilding | Vehicle.Flags.LeftHandDrive);
-            VehicleManager.instance.m_vehicles.ReleaseItem(vehicle);
-            VehicleManager.instance.m_vehicleCount = (int)VehicleManager.instance.m_vehicles.ItemCount() - 1;
         }
     }
 }
