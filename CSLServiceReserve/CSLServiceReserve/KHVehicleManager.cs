@@ -133,7 +133,7 @@ namespace CSLServiceReserve
                 int result = 0;
                 Array16<Vehicle> vehicles = VehicleManager.instance.m_vehicles;
                 foreach (Vehicle current in vehicles.m_buffer){
-                    if (!VALID_TYPES.Contains(current.Info.m_vehicleType) && !VALID_REASONS.Contains((TransferManager.TransferReason)current.m_transferType))){
+                    if (!VALID_TYPES.Contains(current.Info.m_vehicleType) && !VALID_REASONS.Contains((TransferManager.TransferReason)current.m_transferType)){
                         result++;
                     }
                 }
