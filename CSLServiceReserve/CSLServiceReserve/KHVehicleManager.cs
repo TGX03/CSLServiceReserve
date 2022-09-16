@@ -11,14 +11,15 @@ namespace CSLServiceReserve
     internal static class KhVehicleManager
     {
         private static readonly HashSet<TransferManager.TransferReason> VALID_REASONS = new HashSet<TransferManager.TransferReason>();
+        private static readonly HashSet<VehicleInfo.VehicleType> VALID_TYPES = new HashSet<VehicleInfo.VehicleType>();
         private static volatile int NormalVehicleCount = 0;
         private static readonly object Lock = new object();
 
         public static ushort VehicleCount
         {
-            get { return (ushort) NormalVehicleCount; }
+            get { return (ushort)NormalVehicleCount; }
         }
-        
+
         static KhVehicleManager()
         {
             TransferManager.TransferReason[] reasons =
@@ -30,6 +31,10 @@ namespace CSLServiceReserve
               TransferManager.TransferReason.EvacuateVipC, TransferManager.TransferReason.EvacuateVipD, TransferManager.TransferReason.Monorail, TransferManager.TransferReason.Ferry, TransferManager.TransferReason.Blimp, TransferManager.TransferReason.Mail, TransferManager.TransferReason.Trolleybus,
               TransferManager.TransferReason.CableCar, TransferManager.TransferReason.IncomingMail, TransferManager.TransferReason.IntercityBus, TransferManager.TransferReason.OutgoingMail, TransferManager.TransferReason.SortedMail, TransferManager.TransferReason.UnsortedMail };
             VALID_REASONS.UnionWith(reasons.ToList());
+            VehicleInfo.VehicleType[] types =
+            { VehicleInfo.VehicleType.Bicycle, VehicleInfo.VehicleType.Ferry, VehicleInfo.VehicleType.Meteor, VehicleInfo.VehicleType.Helicopter, VehicleInfo.VehicleType.Metro, VehicleInfo.VehicleType.Monorail, VehicleInfo.VehicleType.Plane,
+              VehicleInfo.VehicleType.Rocket, VehicleInfo.VehicleType.Ship, VehicleInfo.VehicleType.Train, VehicleInfo.VehicleType.Tram, VehicleInfo.VehicleType.Trolleybus, VehicleInfo.VehicleType.Vortex, VehicleInfo.VehicleType.CableCar };
+            VALID_TYPES.UnionWith(types);
             new Thread(countVehicles).Start();
         }
 
@@ -39,7 +44,7 @@ namespace CSLServiceReserve
             uint reserveMax = vMgr.m_vehicles.m_size - 1 - Mod.reserveamount; //we subtract 1 cause game doesn't use entry 0 for a real vehicle.
             Mod.timesCvCalledTotal++;                                         //stat tracking.
             bool normalVehicle = false;
-            if (!VALID_REASONS.Contains(type)){
+            if (!VALID_TYPES.Contains(info.m_vehicleType) && !VALID_REASONS.Contains(type)){
                 normalVehicle = true;
                 if (NormalVehicleCount >= reserveMax){
                     Mod.timesFailedByReserve++; //stat tracking
@@ -128,7 +133,7 @@ namespace CSLServiceReserve
                 int result = 0;
                 Array16<Vehicle> vehicles = VehicleManager.instance.m_vehicles;
                 foreach (Vehicle current in vehicles.m_buffer){
-                    if (!VALID_REASONS.Contains((TransferManager.TransferReason)current.m_transferType)){
+                    if (!VALID_TYPES.Contains(current.Info.m_vehicleType) && !VALID_REASONS.Contains((TransferManager.TransferReason)current.m_transferType))){
                         result++;
                     }
                 }
