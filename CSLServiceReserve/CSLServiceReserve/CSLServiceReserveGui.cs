@@ -365,7 +365,7 @@ namespace CSLServiceReserve
 
             while (isVisible & mAutoRefreshCheckbox.isChecked){
                 coVehcRefreshEnabled = true;
-                mCurrentNumOfVehValues.text = string.Concat(vehcCount.ToString(), "    ResInUse: ", tmpResInUse);
+                mCurrentNumOfVehValues.text = string.Concat(vehcCount, "    ResInUse: ", tmpResInUse);
                 yield return new WaitForSeconds(tmpfloattime);
             }
             coVehcRefreshEnabled = false;
@@ -403,9 +403,10 @@ namespace CSLServiceReserve
             try{
                 // m_title.text = string.Concat("Service Vehicle Reserve Data  (c:" , mcount.ToString(),")");
                 VehicleManager vMgr = Singleton<VehicleManager>.instance;
-                int tmpNewMax = (int)(vMgr.m_vehicles.m_size - 1) - Mod.reserveamount;
-                int tmpResInUse = vMgr.m_vehicleCount - tmpNewMax;
-                mCurrentNumOfVehValues.text = string.Concat(vMgr.m_vehicleCount.ToString(), "    ResInUse: ", tmpResInUse < 0 ? "0" : tmpResInUse.ToString());
+                int vehcCount = KhVehicleManager.VehicleCount;
+                int tmpNewMax = Mod.reserveamount;
+                int tmpResInUse = vMgr.m_vehicleCount - vehcCount;
+                mCurrentNumOfVehValues.text = string.Concat(vehcCount, "    ResInUse: ", tmpResInUse);
                 mNewMaxNumberofVecValue.text = string.Concat(tmpNewMax.ToString(), "    #Reserved: ", Mod.reserveamount.ToString());
                 mReserveAttemptsValue.text = Mod.timesReservedAttempted.ToString();
                 mReserveAttemptsFailedValue.text = Mod.timesReserveAttemptFailed.ToString();
@@ -434,7 +435,7 @@ namespace CSLServiceReserve
         {
             VehicleManager vMgr = Singleton<VehicleManager>.instance;
             mCurrentNumOfVehValues = AddUIComponent<UILabel>();
-            mCurrentNumOfVehValues.text = string.Concat(vMgr.m_vehicleCount.ToString(), "    #ResInUse: 0");
+            mCurrentNumOfVehValues.text = string.Concat(KhVehicleManager.VehicleCount, "    #ResInUse: ", vMgr.m_vehicleCount - KhVehicleManager.VehicleCount);
             mCurrentNumOfVehValues.relativePosition = new Vector3(mCurrentNumOfVehText.relativePosition.x + mCurrentNumOfVehText.width + SPACING, mCurrentNumOfVehText.relativePosition.y);
             mCurrentNumOfVehValues.autoSize = true;
             mCurrentNumOfVehValues.tooltip = "The max # is off by 1 because entry 0 for a live vehicle in the game so 16384 is really 16383 usable.\n #ResInUse: is the number of reserved vehicles in use, if things are well number should rarely hit your reserved amount";
